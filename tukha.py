@@ -5,10 +5,10 @@ from flask import Flask
 from threading import Thread
 import os
 
-# --- Render/Koyeb-ისთვის საჭირო Keep-Alive ---
+# --- სერვერის სიცოცხლის შესანარჩუნებელი კოდი ---
 app = Flask('')
 @app.route('/')
-def home(): return "Tukha Signal is Live!"
+def home(): return "ბოტი მუშაობს!"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -21,13 +21,11 @@ def keep_alive():
 TOKEN = '8701731141:AAFbvNGRGCuw_srFMgfOPFO_XmK_lMJxK1U'
 bot = telebot.TeleBot(TOKEN)
 
-# 40 ყველაზე პოპულარული წყვილი
+# ყველა წყვილი
 PAIRS = [
-    "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD", "EURGBP", 
-    "EURJPY", "GBPJPY", "EURAUD", "EURCAD", "AUDJPY", "CADJPY", "GBPAUD", "GBPCAD",
-    "BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT", "ADAUSDT", "DOGEUSDT", "DOTUSDT",
-    "AVAXUSDT", "LINKUSDT", "MATICUSDT", "UNIUSDT", "LTCUSDT", "BCHUSDT", "ATOMUSDT", "XMRUSDT",
-    "XAUUSD", "XAGUSD", "EURCHF", "GBPCHF", "AUDCAD", "AUDCHF", "AUDNZD", "CADCHF", "CHFJPY"
+    "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
+    "BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT",
+    "XAUUSD", "XAGUSD"
 ]
 
 TIMES = {
@@ -39,7 +37,7 @@ TIMES = {
 
 def get_live_analysis(pair, interval):
     try:
-        # ბირჟების მკაცრი განსაზღვრა (რომ 0% არ დაწეროს)
+        # ბირჟების დაზუსტება ბლოკის ასარიდებლად
         if "USDT" in pair:
             scr, exch = "crypto", "BINANCE"
         elif "XAU" in pair or "XAG" in pair:
@@ -61,19 +59,19 @@ def get_live_analysis(pair, interval):
         neutral = analysis.summary.get('NEUTRAL', 0)
         
         total = buy + sell + neutral
-        if total == 0: return "მონაცემები ვერ მოიძებნა", 0
+        if total == 0: return "NEUTRAL", 0
         
         accuracy = max(buy, sell) / total * 100
         rec = analysis.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " ")
         return rec, round(accuracy, 1)
     except:
-        return "ERROR", 0
+        return "NEUTRAL", 0
 
 @bot.message_handler(commands=['start'])
 def start(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("🚀 სიგნალის დაწყება", "ℹ️ ინფორმაცია")
-    bot.send_message(message.chat.id, "🚨 **Tukha Signal** ჩართულია და მზად არის!", reply_markup=markup, parse_mode="Markdown")
+    bot.send_message(message.chat.id, "🚨 **Tukha Signal** ჩართულია!", reply_markup=markup, parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: m.text == "ℹ️ ინფორმაცია")
 def info(message):
@@ -82,7 +80,7 @@ def info(message):
         "ეს ბოტი აანალიზებს ბაზარს რეალურ დროში 20-ზე მეტი ტექნიკური ინდიკატორის გამოყენებით.\n\n"
         "💡 **ოქროს წესი:**\n"
         "ენდეთ მხოლოდ იმ სიგნალებს, რომელთა სიზუსტე **75%-ზე მაღალია**.\n\n"
-        "⚠️ ფორექსი არ მუშაობს შაბათ-კვირას!"
+        "⚠️ **ფორექსი არ მუშაობს შაბათ-კვირას!**"
     )
     bot.send_message(message.chat.id, text, parse_mode="Markdown")
 
@@ -99,7 +97,7 @@ def pick_time(call):
     markup = types.InlineKeyboardMarkup(row_width=2)
     btns = [types.InlineKeyboardButton(t, callback_data=f"s_{pair}_{t}") for t in TIMES.keys()]
     markup.add(*btns)
-    bot.edit_message_text(f"💎 წყვილი: **{pair}**\n⏳ აირჩიეთ დროის ინტერვალი:", call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
+    bot.edit_message_text(f"💎 წყვილი: **{pair}**\n⏳ აირჩიეთ ვადა:", call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("s_"))
 def get_signal(call):
@@ -108,10 +106,15 @@ def get_signal(call):
     
     res, acc = get_live_analysis(pair, TIMES[t_label])
     
-    # ემოჯიების შერჩევა
-    icon = "🚀 STRONG BUY" if "STRONG BUY" in res else "📈 BUY" if "BUY" in res else "🆘 STRONG SELL" if "STRONG SELL" in res else "📉 SELL" if "SELL" in res else "⚖️ NEUTRAL"
+    # ემოჯიების შერჩევა სიგნალის მიხედვით
+    if "BUY" in res:
+        icon = "🚀 STRONG BUY" if "STRONG" in res else "📈 BUY"
+    elif "SELL" in res:
+        icon = "🆘 STRONG SELL" if "STRONG" in res else "📉 SELL"
+    else:
+        icon = "⚖️ NEUTRAL"
     
-    msg = (
+    result_text = (
         f"🚨 **Tukha Signal LIVE** 🚨\n"
         f"━━━━━━━━━━━━━━━\n"
         f"💎 წყვილი: `{pair}`\n"
@@ -121,7 +124,7 @@ def get_signal(call):
         f"━━━━━━━━━━━━━━━\n"
         f"✅ წარმატებულ ვაჭრობას გისურვებთ!"
     )
-    bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+    bot.edit_message_text(result_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
 
 if __name__ == "__main__":
     keep_alive()
