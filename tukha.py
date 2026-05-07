@@ -13,7 +13,6 @@ def home():
     return "Tukha Signal is Running!"
 
 def run():
-    # Render ავტომატურად იყენებს პორტს 10000 ან 8080
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
@@ -25,7 +24,6 @@ def keep_alive():
 TOKEN = '8701731141:AAFbvNGRGCuw_srFMgfOPFO_XmK_lMJxK1U'
 bot = telebot.TeleBot(TOKEN)
 
-# 40 რეალური პოპულარული წყვილი
 PAIRS = [
     "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD", "EURGBP", 
     "EURJPY", "GBPJPY", "EURAUD", "EURCAD", "AUDJPY", "CADJPY", "GBPAUD", "GBPCAD",
@@ -42,18 +40,43 @@ TIMES = {
     "30 MIN": Interval.INTERVAL_30_MINUTES
 }
 
+# --- გაუმჯობესებული ანალიზის ფუნქცია ---
 def get_live_analysis(pair, interval):
     try:
-        is_crypto = "USDT" in pair
-        screener = "crypto" if is_crypto else "forex"
-        exchange = "BINANCE" if is_crypto else "FX_IDC"
-        analysis = TA_Handler(symbol=pair, screener=screener, exchange=exchange, interval=interval).get_analysis()
+        # ბირჟების და სკრინერების დაზუსტება
+        if "USDT" in pair:
+            exch = "BINANCE"
+            scr = "crypto"
+        elif pair in ["XAUUSD", "XAGUSD"]:
+            exch = "OANDA"
+            scr = "forex"
+        else:
+            exch = "FX_IDC"
+            scr = "forex"
+
+        analysis = TA_Handler(
+            symbol=pair,
+            screener=scr,
+            exchange=exch,
+            interval=interval,
+            timeout=10
+        ).get_analysis()
+        
         summary = analysis.summary['RECOMMENDATION']
-        buy, sell, neutral = analysis.summary['BUY'], analysis.summary['SELL'], analysis.summary['NEUTRAL']
-        accuracy = max(buy, sell) / (buy + sell + neutral) * 100
+        buy = analysis.summary['BUY']
+        sell = analysis.summary['SELL']
+        neutral = analysis.summary['NEUTRAL']
+        
+        total = buy + sell + neutral
+        if total == 0:
+            return "WAITING", 0
+        
+        accuracy = max(buy, sell) / total * 100
         return summary.replace("_", " "), round(accuracy, 1)
-    except:
-        return "ERROR", 0
+    except Exception as e:
+        print(f"ანალიზის შეცდომა: {e}")
+        return "TRY AGAIN", 0
+# ---------------------------------------
 
 def main_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -97,8 +120,16 @@ def callback_signal(call):
     data = call.data.split("_")
     pair, time_label = data[1], data[2]
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="🔍 ბაზრის სკანირება...")
+    
     recommendation, accuracy = get_live_analysis(pair, TIMES[time_label])
-    icon = "🚀 STRONG BUY" if "STRONG_BUY" in recommendation else "📈 BUY" if "BUY" in recommendation else "🆘 STRONG SELL" if "STRONG_SELL" in recommendation else "📉 SELL" if "SELL" in recommendation else "⚖️ NEUTRAL"
+    
+    # ემოჯიების ლოგიკა
+    if "BUY" in recommendation:
+        icon = "🚀 STRONG BUY" if "STRONG" in recommendation else "📈 BUY"
+    elif "SELL" in recommendation:
+        icon = "🆘 STRONG SELL" if "STRONG" in recommendation else "📉 SELL"
+    else:
+        icon = "⚖️ NEUTRAL"
     
     result_text = (
         f"🚨 **Tukha Signal LIVE** 🚨\n"
@@ -112,8 +143,7 @@ def callback_signal(call):
     )
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=result_text, parse_mode="Markdown")
 
-# ბოლოში ვამატებთ გაშვების ლოგიკას
 if __name__ == "__main__":
-    keep_alive() # ვრთავთ ვებ-სერვერს Render-ისთვის
+    keep_alive()
     print("Tukha Signal ბოტი ჩაირთვა...")
     bot.polling(none_stop=True)
