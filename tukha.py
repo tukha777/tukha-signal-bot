@@ -4,6 +4,7 @@ from tradingview_ta import TA_Handler, Interval
 from flask import Flask
 from threading import Thread
 import os
+import time
 
 # --- სერვერის სიცოცხლის შესანარჩუნებელი კოდი ---
 app = Flask('')
@@ -126,6 +127,14 @@ def get_signal(call):
     )
     bot.edit_message_text(result_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
 
+# --- გაშვების და ავტომატური აღდგენის ლოგიკა ---
 if __name__ == "__main__":
     keep_alive()
-    bot.polling(none_stop=True)
+    print("Tukha Signal ბოტი ჩაირთვა...")
+    
+    while True:
+        try:
+            bot.polling(none_stop=True, interval=0, timeout=20)
+        except Exception as e:
+            print(f"ბოტი დროებით გაჩერდა შეცდომის გამო: {e}")
+            time.sleep(5) # დაიცადე 5 წამი და თავისით ჩაირთვება
