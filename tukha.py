@@ -36,37 +36,41 @@ TIMES = {
     "30 MIN": Interval.INTERVAL_30_MINUTES
 }
 
+# --- გაუმჯობესებული ანალიზის ფუნქცია (მხოლოდ ეს ნაწილი შეიცვალა შიგნით) ---
 def get_live_analysis(pair, interval):
-    try:
-        # ბირჟების დაზუსტება ბლოკის ასარიდებლად
-        if "USDT" in pair:
-            scr, exch = "crypto", "BINANCE"
-        elif "XAU" in pair or "XAG" in pair:
-            scr, exch = "forex", "SAXO"
-        else:
-            scr, exch = "forex", "FX_IDC"
-
-        handler = TA_Handler(
-            symbol=pair,
-            screener=scr,
-            exchange=exch,
-            interval=interval,
-            timeout=15
-        )
-        
-        analysis = handler.get_analysis()
-        buy = analysis.summary.get('BUY', 0)
-        sell = analysis.summary.get('SELL', 0)
-        neutral = analysis.summary.get('NEUTRAL', 0)
-        
-        total = buy + sell + neutral
-        if total == 0: return "NEUTRAL", 0
-        
-        accuracy = max(buy, sell) / total * 100
-        rec = analysis.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " ")
-        return rec, round(accuracy, 1)
-    except:
-        return "NEUTRAL", 0
+    # ბირჟების სია სადაც შეიძლება იყოს წყვილი
+    options = [
+        {"scr": "crypto" if "USDT" in pair else "forex", "exch": "BINANCE" if "USDT" in pair else "FX_IDC"},
+        {"scr": "crypto" if "USDT" in pair else "forex", "exch": "BITSTAMP" if "USDT" in pair else "OANDA"},
+        {"scr": "america" if not "USDT" in pair else "crypto", "exch": "SAXO" if not "USDT" in pair else "COINBASE"}
+    ]
+    
+    for opt in options:
+        try:
+            handler = TA_Handler(
+                symbol=pair,
+                screener=opt["scr"],
+                exchange=opt["exch"],
+                interval=interval,
+                timeout=10
+            )
+            # Headers ბლოკის ასარიდებლად
+            handler.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+            
+            analysis = handler.get_analysis()
+            buy = analysis.summary.get('BUY', 0)
+            sell = analysis.summary.get('SELL', 0)
+            neutral = analysis.summary.get('NEUTRAL', 0)
+            total = buy + sell + neutral
+            
+            if total > 0:
+                accuracy = max(buy, sell) / total * 100
+                rec = analysis.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " ")
+                return rec, round(accuracy, 1)
+        except:
+            continue 
+            
+    return "NEUTRAL", 0
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -107,7 +111,6 @@ def get_signal(call):
     
     res, acc = get_live_analysis(pair, TIMES[t_label])
     
-    # ემოჯიების შერჩევა სიგნალის მიხედვით
     if "BUY" in res:
         icon = "🚀 STRONG BUY" if "STRONG" in res else "📈 BUY"
     elif "SELL" in res:
@@ -137,4 +140,4 @@ if __name__ == "__main__":
             bot.polling(none_stop=True, interval=0, timeout=20)
         except Exception as e:
             print(f"ბოტი დროებით გაჩერდა შეცდომის გამო: {e}")
-            time.sleep(5) # დაიცადე 5 წამი და თავისით ჩაირთვება
+            time.sleep(5)
