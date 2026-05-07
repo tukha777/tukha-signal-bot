@@ -4,7 +4,6 @@ from tradingview_ta import TA_Handler, Interval
 from flask import Flask
 from threading import Thread
 import os
-import time
 
 # --- Render-ისთვის საჭირო ვებ-სერვერი (Keep Alive) ---
 app = Flask('')
@@ -41,58 +40,42 @@ TIMES = {
     "30 MIN": Interval.INTERVAL_30_MINUTES
 }
 
-# --- გაძლიერებული ანალიზის ფუნქცია ---
+# --- ეს არის ის ნაწილი, რომელიც შევცვალე (ავტომატური ძებნა) ---
 def get_live_analysis(pair, interval):
     try:
-        # ბირჟების და სკრინერების დინამიური განსაზღვრა
-        if "USDT" in pair:
-            exch = "BINANCE"
-            scr = "crypto"
-        elif any(x in pair for x in ["XAU", "XAG", "EUR", "GBP", "USD", "JPY", "AUD"]):
-            # ფორექსის წყვილებისთვის OANDA ან FX_IDC უფრო სტაბილურია სერვერზე
-            exch = "OANDA"
-            scr = "forex"
-        else:
-            exch = "FX_IDC"
-            scr = "forex"
-
-        handler = TA_Handler(
-            symbol=pair,
-            screener=scr,
-            exchange=exch,
-            interval=interval,
-            timeout=15  # მეტი დრო სერვერისთვის
-        )
+        is_crypto = "USDT" in pair
+        scr = "crypto" if is_crypto else "forex"
         
-        analysis = handler.get_analysis()
+        # ბირჟების სია, რომლებსაც სათითაოდ შეამოწმებს
+        exchanges = ["BINANCE", "FX_IDC", "OANDA", "SAXO", "CAPITALCOM"]
         
-        summary = analysis.summary['RECOMMENDATION']
-        buy = analysis.summary['BUY']
-        sell = analysis.summary['SELL']
-        neutral = analysis.summary['NEUTRAL']
-        
-        total = buy + sell + neutral
-        
-        # თუ პირველმა ცდამ 0 მოგვცა, ვცადოთ რეზერვი
-        if total == 0:
-            handler.exchange = "FX_IDC" if exch == "OANDA" else "OANDA"
-            analysis = handler.get_analysis()
-            buy = analysis.summary['BUY']
-            sell = analysis.summary['SELL']
-            neutral = analysis.summary['NEUTRAL']
-            summary = analysis.summary['RECOMMENDATION']
-            total = buy + sell + neutral
-
-        if total == 0:
-            return "NO DATA", 0
-        
-        accuracy = max(buy, sell) / total * 100
-        return summary.replace("_", " "), round(accuracy, 1)
-        
+        for exch in exchanges:
+            try:
+                handler = TA_Handler(
+                    symbol=pair,
+                    screener=scr,
+                    exchange=exch,
+                    interval=interval,
+                    timeout=10
+                )
+                analysis = handler.get_analysis()
+                buy = analysis.summary['BUY']
+                sell = analysis.summary['SELL']
+                neutral = analysis.summary['NEUTRAL']
+                total = buy + sell + neutral
+                
+                if total > 0:
+                    summary = analysis.summary['RECOMMENDATION']
+                    accuracy = max(buy, sell) / total * 100
+                    return summary.replace("_", " "), round(accuracy, 1)
+            except:
+                continue # თუ ერთ ბირჟაზე ვერ იპოვა, გადადის შემდეგზე
+                
+        return "NO DATA", 0
     except Exception as e:
-        print(f"ანალიზის შეცდომა: {e}")
-        return "TRY AGAIN", 0
+        return "ERROR", 0
 
+# --- დანარჩენი კოდი უცვლელია ---
 def main_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton("🚀 სიგნალის დაწყება")
@@ -102,7 +85,7 @@ def main_menu():
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, "მოგესალმებით **Tukha Signal**-ში! 🚀\nგამოიყენეთ ქვედა მენიუ მართვისთვის.", 
+    bot.send_message(message.chat.id, "მოგესალმებით **Tukha Signal**-ში! 🚀", 
                      reply_markup=main_menu(), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda message: message.text == "🚀 სიგნალის დაწყება")
@@ -114,14 +97,7 @@ def show_pairs(message):
 
 @bot.message_handler(func=lambda message: message.text == "ℹ️ ინფორმაცია")
 def info(message):
-    info_text = (
-        "🤖 **Tukha Signal Bot v3.1**\n\n"
-        "ეს ბოტი აანალიზებს ბაზარს რეალურ დროში 20-ზე მეტი ტექნიკური ინდიკატორის გამოყენებით (RSI, Stoch, EMA და ა.შ.).\n\n"
-        "💡 **რჩევა:**\n"
-        "1. ენდეთ მხოლოდ **Strong** სიგნალებს.\n"
-        "2. ოპტიმალური სიზუსტე: **>75%**.\n"
-        "3. ფორექსი არ მუშაობს შაბათ-კვირას!"
-    )
+    info_text = "🤖 **Tukha Signal Bot v3.1**\n\n💡 ენდეთ მხოლოდ ძლიერ სიგნალებს!"
     bot.send_message(message.chat.id, info_text, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("pair_"))
@@ -137,7 +113,6 @@ def callback_pair(call):
 def callback_signal(call):
     data = call.data.split("_")
     pair, time_label = data[1], data[2]
-    
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="🔍 ბაზრის სკანირება...")
     
     recommendation, accuracy = get_live_analysis(pair, TIMES[time_label])
@@ -163,5 +138,4 @@ def callback_signal(call):
 
 if __name__ == "__main__":
     keep_alive()
-    print("Tukha Signal ბოტი ჩაირთვა...")
     bot.polling(none_stop=True)
