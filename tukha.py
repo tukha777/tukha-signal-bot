@@ -17,7 +17,7 @@ def run():
 def keep_alive():
     Thread(target=run).start()
 
-TOKEN = '8701731141:AAFbvNGRGCuw_srFMgfOPFO_XmK_lMJxK1U'
+TOKEN = '8701731141:AAG-Q6mXdIv65BR-Zqn90ZGMc3M0D1xKwRk'
 bot = telebot.TeleBot(TOKEN)
 
 # მენიუში ბრძანების დაყენება
