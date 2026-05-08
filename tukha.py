@@ -158,7 +158,12 @@ def get_live_analysis(pair, t_label):
     if "USDT" in pair:
         options = [{"scr": "crypto", "exch": "BINANCE"}, {"scr": "crypto", "exch": "BYBIT"}]
     elif pair in ["XAUUSD", "XAGUSD"]:
-        options = [{"scr": "forex", "exch": "OANDA"}, {"scr": "forex", "exch": "SAXO"}, {"scr": "forex", "exch": "FOREXCOM"}]
+        # დამატებულია 'cfd' სკრინერი და TVC/OANDA ბირჟები ოქროსთვის
+        options = [
+            {"scr": "cfd", "exch": "TVC"}, 
+            {"scr": "forex", "exch": "OANDA"},
+            {"scr": "cfd", "exch": "OANDA"}
+        ]
     else:
         options = [{"scr": "forex", "exch": "FX_IDC"}, {"scr": "forex", "exch": "OANDA"}]
 
