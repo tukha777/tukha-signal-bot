@@ -27,7 +27,7 @@ def set_bot_commands():
     ])
 
 # --- VIP წვდომის მქონე მომხმარებელთა სია ---
-ALLOWED_USERS = [8696404791] 
+ALLOWED_USERS = [8696404791, 8711448963] 
 
 user_lang = {}
 
