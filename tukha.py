@@ -161,38 +161,64 @@ def show_pairs(message):
         return
     
     markup = types.InlineKeyboardMarkup(row_width=3)
-    
-    # --- FOREX SECTION ---
-    forex_btns = [
-        types.InlineKeyboardButton("EURUSD", callback_data="p_EURUSD"),
-        types.InlineKeyboardButton("GBPUSD", callback_data="p_GBPUSD"),
-        types.InlineKeyboardButton("USDJPY", callback_data="p_USDJPY"),
-        types.InlineKeyboardButton("AUDUSD", callback_data="p_AUDUSD"),
-        types.InlineKeyboardButton("USDCAD", callback_data="p_USDCAD"),
-        types.InlineKeyboardButton("USDCHF", callback_data="p_USDCHF"),
-        types.InlineKeyboardButton("NZDUSD", callback_data="p_NZDUSD")
-    ]
-    # --- CRYPTO SECTION ---
-    crypto_btns = [
-        types.InlineKeyboardButton("BTCUSDT", callback_data="p_BTCUSDT"),
-        types.InlineKeyboardButton("ETHUSDT", callback_data="p_ETHUSDT"),
-        types.InlineKeyboardButton("SOLUSDT", callback_data="p_SOLUSDT"),
-        types.InlineKeyboardButton("XRPUSDT", callback_data="p_XRPUSDT"),
-        types.InlineKeyboardButton("BNBUSDT", callback_data="p_BNBUSDT")
-    ]
-    # --- COMMODITIES & INDICES ---
-    other_btns = [
-        types.InlineKeyboardButton("US30", callback_data="p_US30"),
-        types.InlineKeyboardButton("UKOIL", callback_data="p_UKOIL"),
-        types.InlineKeyboardButton("XAUUSD", callback_data="p_XAUUSD"),
-        types.InlineKeyboardButton("XAGUSD", callback_data="p_XAGUSD")
-    ]
+    forex_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD"]]
+    crypto_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"]]
+    other_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["US30", "UKOIL", "XAUUSD", "XAGUSD"]]
     
     markup.add(*forex_btns)
     markup.add(*crypto_btns)
     markup.add(*other_btns)
-    
     bot.send_message(message.chat.id, STRINGS[lang]['choose_pair'], reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda c: c.data.startswith("p_"))
+def pick_time(call):
+    lang = user_lang.get(call.from_user.id, 'en')
+    pair = call.data.split("_")[1]
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
+    btns = [types.InlineKeyboardButton(t, callback_data=f"s_{pair}_{t}") for t in times.keys()]
+    markup.add(*btns)
+    bot.edit_message_text(f"💎 {STRINGS[lang]['pair_label']}: **{pair}**\n{STRINGS[lang]['choose_time']}", call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
+
+@bot.callback_query_handler(func=lambda c: c.data.startswith("s_"))
+def get_signal(call):
+    lang = user_lang.get(call.from_user.id, 'en')
+    _, pair, t_label = call.data.split("_")
+    bot.edit_message_text(STRINGS[lang]['scanning'].format(pair), call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+    res, acc = get_live_analysis(pair, t_label) 
+    icon = "🚀 STRONG BUY" if "STRONG BUY" in res else "📈 BUY" if "BUY" in res else "🆘 STRONG SELL" if "STRONG SELL" in res else "📉 SELL" if "SELL" in res else "⚖️ NEUTRAL"
+    txt = (f"🚨 **Tukha Signal LIVE** 🚨\n━━━━━━━━━━━━━━━\n"
+           f"💎 {STRINGS[lang]['pair_label']}: `{pair}`\n⏱ {STRINGS[lang]['time_label']}: `{t_label}`\n"
+           f"📊 {STRINGS[lang]['signal_label']}: **{icon}**\n🎯 {STRINGS[lang]['accuracy']}: `{acc}%`\n"
+           f"━━━━━━━━━━━━━━━\n{STRINGS[lang]['success']}")
+    bot.edit_message_text(txt, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+
+def get_live_analysis(pair, t_label):
+    times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
+    interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
+    
+    # აქ არის მთავარი ლოგიკა წყვილების სწორად დასაკავშირებლად
+    if "USDT" in pair:
+        scr, exch = "crypto", "BINANCE"
+    elif pair == "US30":
+        scr, exch = "cfd", "CURRENCYCOM" # US30-სთვის ეს ბირჟა ყველაზე სტაბილურია
+    elif pair == "UKOIL":
+        scr, exch = "cfd", "TVC"
+    elif pair in ["XAUUSD", "XAGUSD"]:
+        scr, exch = "cfd", "TVC"
+    else:
+        scr, exch = "forex", "FX_IDC"
+        
+    try:
+        h = TA_Handler(symbol=pair, screener=scr, exchange=exch, interval=interval, timeout=10)
+        a = h.get_analysis()
+        b, s, n = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
+        total = b + s + n
+        if total == 0: return "NEUTRAL", 0
+        return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), round(max(b, s) / total * 100, 1)
+    except Exception as e:
+        print(f"Error for {pair}: {e}")
+        return "NEUTRAL", 0
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("req_vip_"))
 def request_vip(call):
@@ -233,58 +259,6 @@ def activate_user_vip(uid, days):
         user_data[parent_id]['expiry'] = (p_expiry if p_expiry > now else now) + datetime.timedelta(days=14)
         try: bot.send_message(parent_id, STRINGS[p_lang]['ref_bonus'])
         except: pass
-
-@bot.callback_query_handler(func=lambda c: c.data.startswith("p_"))
-def pick_time(call):
-    lang = user_lang.get(call.from_user.id, 'en')
-    pair = call.data.split("_")[1]
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
-    btns = [types.InlineKeyboardButton(t, callback_data=f"s_{pair}_{t}") for t in times.keys()]
-    markup.add(*btns)
-    bot.edit_message_text(f"💎 {STRINGS[lang]['pair_label']}: **{pair}**\n{STRINGS[lang]['choose_time']}", call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
-
-@bot.callback_query_handler(func=lambda c: c.data.startswith("s_"))
-def get_signal(call):
-    lang = user_lang.get(call.from_user.id, 'en')
-    _, pair, t_label = call.data.split("_")
-    bot.edit_message_text(STRINGS[lang]['scanning'].format(pair), call.message.chat.id, call.message.message_id, parse_mode="Markdown")
-    res, acc = get_live_analysis(pair, t_label) 
-    icon = "🚀 STRONG BUY" if "STRONG BUY" in res else "📈 BUY" if "BUY" in res else "🆘 STRONG SELL" if "STRONG SELL" in res else "📉 SELL" if "SELL" in res else "⚖️ NEUTRAL"
-    txt = (f"🚨 **Tukha Signal LIVE** 🚨\n━━━━━━━━━━━━━━━\n"
-           f"💎 {STRINGS[lang]['pair_label']}: `{pair}`\n⏱ {STRINGS[lang]['time_label']}: `{t_label}`\n"
-           f"📊 {STRINGS[lang]['signal_label']}: **{icon}**\n🎯 {STRINGS[lang]['accuracy']}: `{acc}%`\n"
-           f"━━━━━━━━━━━━━━━\n{STRINGS[lang]['success']}")
-    bot.edit_message_text(txt, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
-
-def get_live_analysis(pair, t_label):
-    times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
-    interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
-    
-    options = []
-    if "USDT" in pair:
-        options = [{"scr": "crypto", "exch": "BINANCE"}, {"scr": "crypto", "exch": "BYBIT"}]
-    elif pair in ["XAUUSD", "XAGUSD"]:
-        options = [{"scr": "cfd", "exch": "TVC"}, {"scr": "forex", "exch": "OANDA"}, {"scr": "cfd", "exch": "SAXO"}]
-    elif pair == "UKOIL":
-        options = [{"scr": "cfd", "exch": "ICE"}, {"scr": "cfd", "exch": "TVC"}]
-    elif pair == "US30":
-        options = [{"scr": "cfd", "exch": "CURRENCYCOM"}, {"scr": "cfd", "exch": "CAPITALCOM"}, {"scr": "cfd", "exch": "TVC"}]
-    else:
-        options = [{"scr": "forex", "exch": "FX_IDC"}, {"scr": "forex", "exch": "OANDA"}]
-        
-    for opt in options:
-        try:
-            h = TA_Handler(symbol=pair, screener=opt["scr"], exchange=opt["exch"], interval=interval, timeout=10)
-            a = h.get_analysis()
-            b, s, n = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
-            total = b + s + n
-            if total > 0:
-                return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), round(max(b, s) / total * 100, 1)
-        except:
-            continue
-            
-    return "NEUTRAL", 0
 
 if __name__ == "__main__":
     set_bot_commands()
