@@ -80,7 +80,7 @@ STRINGS = {
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Выберите таймфрейм:",
         'scanning': "🔍 Сканирование: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот бот анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фორექს არ მუშაობს შაბათ-კვირას!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот боტ анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Форекс не работает по выходным!**",
         'accuracy': "🎯 Точность",
         'pair_label': "💎 Пара",
         'time_label': "⏱ Время",
@@ -92,13 +92,12 @@ STRINGS = {
     }
 }
 
-# ღილაკების თანმიმდევრობა შენი მოთხოვნის მიხედვით
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(STRINGS[lang]['lang_btn'])      # 1. ენა
-    markup.add(STRINGS[lang]['info_btn'])      # 2. ინფორმაცია
-    markup.add(STRINGS[lang]['signal_btn'])    # 3. სიგნალები
-    markup.add(STRINGS[lang]['ref_btn'])       # 4. რეფერალი
+    markup.add(STRINGS[lang]['lang_btn'])
+    markup.add(STRINGS[lang]['info_btn'])
+    markup.add(STRINGS[lang]['signal_btn'])
+    markup.add(STRINGS[lang]['ref_btn'])
     return markup
 
 def get_lang_inline():
@@ -123,8 +122,6 @@ def start(message):
         if parent_id:
             try: bot.send_message(parent_id, "🔔 ახალი რეფერალი შემოვიდა თქვენი ლინკით!")
             except: pass
-    
-    # პირველი ჩართვისას ყოველთვის ინგლისურით იწყებს
     lang = user_lang.get(user_id, 'en')
     bot.send_message(message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
@@ -163,7 +160,12 @@ def show_pairs(message):
         bot.send_message(message.chat.id, STRINGS[lang]['paywall'], reply_markup=m, parse_mode="Markdown")
         return
     markup = types.InlineKeyboardMarkup(row_width=3)
-    btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "BTCUSDT", "ETHUSDT", "XAUUSD"]]
+    # აქ დავაბრუნე ყველა წყვილი სრულად
+    btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in [
+        "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD", 
+        "BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT", 
+        "XAUUSD", "XAGUSD"
+    ]]
     markup.add(*btns)
     bot.send_message(message.chat.id, STRINGS[lang]['choose_pair'], reply_markup=markup)
 
