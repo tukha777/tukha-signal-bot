@@ -38,7 +38,7 @@ STRINGS = {
         'info_btn': "ℹ️ ინფორმაცია",
         'signal_btn': "🚀 სიგნალის დაწყება",
         'lang_btn': "🌐 ენის შეცვლა",
-        'ref_btn': "👥 მოიწვიე მეგობარი",
+        'ref_btn': "🎁 მოიწვიე მეგობარი და მიიღე VIP",
         'choose_pair': "📊 აირჩიეთ წყვილი:",
         'choose_time': "⏳ აირჩიეთ ვადა:",
         'scanning': "🔍 სკანირება: **{}**...",
@@ -49,7 +49,7 @@ STRINGS = {
         'signal_label': "📊 სიგნალი",
         'success': "✅ წარმატებულ ვაჭრობას გისურვებთ!",
         'paywall': "🚫 **წვდომა შეზღუდულია!**\n\nბოტის გამოსაყენებლად საჭიროა VIP აქტივაცია.\n\n💰 **ფასი:** $30 (1 თვე)\n📩 **გასააქტიურებლად:** @TukhaTheGreat",
-        'ref_msg': "🎁 **მოიწვიე მეგობარი!**\n\nთუ შენი მეგობარი შეიძენს VIP-ს, შენ საჩუქრად მიიღებ **14 დღეს**.\n\nშენი ლინკი:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **მოიწვიე მეგობარი და მიიღე VIP!**\n\nთუ შენი მეგობარი შეიძენს VIP-ს, შენ საჩუქრად მიიღებ **14 დღეს**.\n\nშენი ლინკი:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 გილოცავთ! თქვენმა რეფერალმა შეიძინა VIP. დაგერიცხათ +14 დღე!"
     },
     'en': {
@@ -57,7 +57,7 @@ STRINGS = {
         'info_btn': "ℹ️ Information",
         'signal_btn': "🚀 Start Signal",
         'lang_btn': "🌐 Change Language",
-        'ref_btn': "👥 Invite Friend",
+        'ref_btn': "🎁 Invite & Get VIP",
         'choose_pair': "📊 Choose pair:",
         'choose_time': "⏳ Choose timeframe:",
         'scanning': "🔍 Scanning: **{}**...",
@@ -68,7 +68,7 @@ STRINGS = {
         'signal_label': "📊 Signal",
         'success': "✅ Good luck!",
         'paywall': "🚫 **Access Denied!**\n\nActivation is required.\n\n💰 **Price:** $30 (1 Month)\n📩 **Contact:** @TukhaTheGreat",
-        'ref_msg': "🎁 **Invite a friend!**\n\nIf your friend buys VIP, you get **14 days** for free.\n\nYour link:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **Invite a friend & Get VIP!**\n\nIf your friend buys VIP, you get **14 days** for free.\n\nYour link:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 Congratulations! Your referral purchased VIP. You received +14 days!"
     },
     'ru': {
@@ -76,7 +76,7 @@ STRINGS = {
         'info_btn': "ℹ️ Информация",
         'signal_btn': "🚀 Запустить сигнал",
         'lang_btn': "🌐 Сменить язык",
-        'ref_btn': "👥 Пригласить друга",
+        'ref_btn': "🎁 Пригласить и получить VIP",
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Выберите таймфрейм:",
         'scanning': "🔍 Сканирование: **{}**...",
@@ -87,18 +87,18 @@ STRINGS = {
         'signal_label': "📊 Сигнал",
         'success': "✅ Удачной торговли!",
         'paywall': "🚫 **Доступ ограничен!**\n\nТребуется активация VIP.\n\n💰 **Цена:** $30 (1 месяц)\n📩 **Контакт:** @TukhaTheGreat",
-        'ref_msg': "🎁 **Пригласи друга!**\n\nЕсли ваш друг купит VIP, вы получите **14 дней** бесплатно.\n\nВаша ссылка:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **Пригласи друга и получи VIP!**\n\nЕсли ваш друг купит VIP, вы получите **14 дней** бесплатно.\n\nВаша ссылка:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 Поздравляем! Ваш реферал купил VIP. Вам начислено +14 дней!"
     }
 }
 
-# ღილაკების ახალი თანმიმდევრობა
+# ღილაკების თანმიმდევრობა შენი მოთხოვნის მიხედვით
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(STRINGS[lang]['lang_btn'])
-    markup.add(STRINGS[lang]['info_btn'])
-    markup.add(STRINGS[lang]['ref_btn'])
-    markup.add(STRINGS[lang]['signal_btn'])
+    markup.add(STRINGS[lang]['lang_btn'])      # 1. ენა
+    markup.add(STRINGS[lang]['info_btn'])      # 2. ინფორმაცია
+    markup.add(STRINGS[lang]['signal_btn'])    # 3. სიგნალები
+    markup.add(STRINGS[lang]['ref_btn'])       # 4. რეფერალი
     return markup
 
 def get_lang_inline():
