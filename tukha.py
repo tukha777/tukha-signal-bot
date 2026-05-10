@@ -80,7 +80,7 @@ STRINGS = {
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Выберите таймфрейм:",
         'scanning': "🔍 Сканирование: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот боტ анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Форекс не работает по выходным!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот боტ анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фოрекс არ მუშაობს შაბათ-კვირას!**",
         'accuracy': "🎯 Точность",
         'pair_label': "💎 Пара",
         'time_label': "⏱ Время",
@@ -159,13 +159,31 @@ def show_pairs(message):
         m.add(types.InlineKeyboardButton("🔑 Send my ID", callback_data=f"req_vip_{user_id}"))
         bot.send_message(message.chat.id, STRINGS[lang]['paywall'], reply_markup=m, parse_mode="Markdown")
         return
+    
     markup = types.InlineKeyboardMarkup(row_width=3)
-    # აქ დავაბრუნე ყველა წყვილი სრულად
-    btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in [
-        "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD", 
-        "BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT", 
-        "XAUUSD", "XAGUSD"
-    ]]
+    
+    # კატეგორიებად დაჯგუფებული წყვილები
+    btns = [
+        # --- Forex ---
+        types.InlineKeyboardButton("EURUSD", callback_data="p_EURUSD"),
+        types.InlineKeyboardButton("GBPUSD", callback_data="p_GBPUSD"),
+        types.InlineKeyboardButton("USDJPY", callback_data="p_USDJPY"),
+        types.InlineKeyboardButton("AUDUSD", callback_data="p_AUDUSD"),
+        types.InlineKeyboardButton("USDCAD", callback_data="p_USDCAD"),
+        types.InlineKeyboardButton("USDCHF", callback_data="p_USDCHF"),
+        types.InlineKeyboardButton("NZDUSD", callback_data="p_NZDUSD"),
+        # --- Crypto ---
+        types.InlineKeyboardButton("BTCUSDT", callback_data="p_BTCUSDT"),
+        types.InlineKeyboardButton("ETHUSDT", callback_data="p_ETHUSDT"),
+        types.InlineKeyboardButton("SOLUSDT", callback_data="p_SOLUSDT"),
+        types.InlineKeyboardButton("XRPUSDT", callback_data="p_XRPUSDT"),
+        types.InlineKeyboardButton("BNBUSDT", callback_data="p_BNBUSDT"),
+        # --- Indices & Oil & Metals ---
+        types.InlineKeyboardButton("US30", callback_data="p_US30"),
+        types.InlineKeyboardButton("UKOIL", callback_data="p_UKOIL"),
+        types.InlineKeyboardButton("XAUUSD", callback_data="p_XAUUSD"),
+        types.InlineKeyboardButton("XAGUSD", callback_data="p_XAGUSD")
+    ]
     markup.add(*btns)
     bot.send_message(message.chat.id, STRINGS[lang]['choose_pair'], reply_markup=markup)
 
@@ -235,9 +253,16 @@ def get_signal(call):
 def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
+    
+    # სკრინერისა და ბირჟის შერჩევა
+    if "USDT" in pair:
+        scr, exch = "crypto", "BINANCE"
+    elif pair in ["XAUUSD", "XAGUSD", "UKOIL", "US30"]:
+        scr, exch = "cfd", "TVC"
+    else:
+        scr, exch = "forex", "FX_IDC"
+        
     try:
-        scr = "crypto" if "USDT" in pair else "cfd" if "XAU" in pair else "forex"
-        exch = "BINANCE" if scr == "crypto" else "TVC" if "XAU" in pair else "FX_IDC"
         h = TA_Handler(symbol=pair, screener=scr, exchange=exch, interval=interval, timeout=10)
         a = h.get_analysis()
         b, s, n = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
