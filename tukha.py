@@ -80,7 +80,7 @@ STRINGS = {
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Выберите таймфрейм:",
         'scanning': "🔍 Сканирование: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот боტ анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фოрекс არ მუშაობს შაბათ-კვირას!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот бот анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фოрекс არ მუშაობს შაბათ-კვირას!**",
         'accuracy': "🎯 Точность",
         'pair_label': "💎 Пара",
         'time_label': "⏱ Время",
@@ -161,25 +161,37 @@ def show_pairs(message):
         return
     
     markup = types.InlineKeyboardMarkup(row_width=3)
-    btns = [
+    
+    # --- FOREX SECTION ---
+    forex_btns = [
         types.InlineKeyboardButton("EURUSD", callback_data="p_EURUSD"),
         types.InlineKeyboardButton("GBPUSD", callback_data="p_GBPUSD"),
         types.InlineKeyboardButton("USDJPY", callback_data="p_USDJPY"),
         types.InlineKeyboardButton("AUDUSD", callback_data="p_AUDUSD"),
         types.InlineKeyboardButton("USDCAD", callback_data="p_USDCAD"),
         types.InlineKeyboardButton("USDCHF", callback_data="p_USDCHF"),
-        types.InlineKeyboardButton("NZDUSD", callback_data="p_NZDUSD"),
+        types.InlineKeyboardButton("NZDUSD", callback_data="p_NZDUSD")
+    ]
+    # --- CRYPTO SECTION ---
+    crypto_btns = [
         types.InlineKeyboardButton("BTCUSDT", callback_data="p_BTCUSDT"),
         types.InlineKeyboardButton("ETHUSDT", callback_data="p_ETHUSDT"),
         types.InlineKeyboardButton("SOLUSDT", callback_data="p_SOLUSDT"),
         types.InlineKeyboardButton("XRPUSDT", callback_data="p_XRPUSDT"),
-        types.InlineKeyboardButton("BNBUSDT", callback_data="p_BNBUSDT"),
+        types.InlineKeyboardButton("BNBUSDT", callback_data="p_BNBUSDT")
+    ]
+    # --- COMMODITIES & INDICES ---
+    other_btns = [
         types.InlineKeyboardButton("US30", callback_data="p_US30"),
         types.InlineKeyboardButton("UKOIL", callback_data="p_UKOIL"),
         types.InlineKeyboardButton("XAUUSD", callback_data="p_XAUUSD"),
         types.InlineKeyboardButton("XAGUSD", callback_data="p_XAGUSD")
     ]
-    markup.add(*btns)
+    
+    markup.add(*forex_btns)
+    markup.add(*crypto_btns)
+    markup.add(*other_btns)
+    
     bot.send_message(message.chat.id, STRINGS[lang]['choose_pair'], reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("req_vip_"))
@@ -249,7 +261,6 @@ def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    # გაუმჯობესებული ბირჟების სია
     options = []
     if "USDT" in pair:
         options = [{"scr": "crypto", "exch": "BINANCE"}, {"scr": "crypto", "exch": "BYBIT"}]
