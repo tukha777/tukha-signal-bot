@@ -19,7 +19,6 @@ def keep_alive():
     Thread(target=run).start()
 
 TOKEN = '8701731141:AAG-Q6mXdIv65BR-Zqn90ZGMc3M0D1xKwRk'
-# --- აქ დავამატე ორივე ადმინი ---
 ADMIN_IDS = [8696404791, 8711448963] 
 
 bot = telebot.TeleBot(TOKEN)
@@ -93,11 +92,13 @@ STRINGS = {
     }
 }
 
+# ღილაკების ახალი თანმიმდევრობა
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(STRINGS[lang]['signal_btn'])
-    markup.add(STRINGS[lang]['ref_btn'], STRINGS[lang]['info_btn'])
     markup.add(STRINGS[lang]['lang_btn'])
+    markup.add(STRINGS[lang]['info_btn'])
+    markup.add(STRINGS[lang]['ref_btn'])
+    markup.add(STRINGS[lang]['signal_btn'])
     return markup
 
 def get_lang_inline():
@@ -122,13 +123,15 @@ def start(message):
         if parent_id:
             try: bot.send_message(parent_id, "🔔 ახალი რეფერალი შემოვიდა თქვენი ლინკით!")
             except: pass
-    lang = user_lang.get(user_id, 'ka')
+    
+    # პირველი ჩართვისას ყოველთვის ინგლისურით იწყებს
+    lang = user_lang.get(user_id, 'en')
     bot.send_message(message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['ref_btn'] for l in STRINGS))
 def show_referral(message):
     user_id = message.from_user.id
-    lang = user_lang.get(user_id, 'ka')
+    lang = user_lang.get(user_id, 'en')
     bot_username = bot.get_me().username
     bot.send_message(user_id, STRINGS[lang]['ref_msg'].format(bot_username, user_id), parse_mode="Markdown")
 
@@ -145,18 +148,18 @@ def set_lang(call):
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['info_btn'] for l in STRINGS))
 def info(message):
-    lang = user_lang.get(message.from_user.id, 'ka')
+    lang = user_lang.get(message.from_user.id, 'en')
     bot.send_message(message.chat.id, STRINGS[lang]['info_text'], parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['signal_btn'] for l in STRINGS))
 def show_pairs(message):
     user_id = message.from_user.id
-    lang = user_lang.get(user_id, 'ka')
+    lang = user_lang.get(user_id, 'en')
     now = datetime.datetime.now()
     expiry = user_data.get(user_id, {}).get('expiry')
     if user_id not in ALLOWED_USERS and (not expiry or expiry < now):
         m = types.InlineKeyboardMarkup()
-        m.add(types.InlineKeyboardButton("🔑 ჩემი ID-ს გაგზავნა", callback_data=f"req_vip_{user_id}"))
+        m.add(types.InlineKeyboardButton("🔑 Send my ID", callback_data=f"req_vip_{user_id}"))
         bot.send_message(message.chat.id, STRINGS[lang]['paywall'], reply_markup=m, parse_mode="Markdown")
         return
     markup = types.InlineKeyboardMarkup(row_width=3)
@@ -170,21 +173,20 @@ def request_vip(call):
     uname = call.from_user.username or "NoName"
     m = types.InlineKeyboardMarkup()
     m.add(types.InlineKeyboardButton("✅ გააქტიურება (30 დღე)", callback_data=f"adm_act_{uid}"))
-    # ორივე ადმინს მოუვა მოთხოვნა
     for adm in ADMIN_IDS:
         try: bot.send_message(adm, f"🔔 VIP მოთხოვნა!\nUser: @{uname}\nID: `{uid}`", reply_markup=m, parse_mode="Markdown")
         except: pass
-    bot.answer_callback_query(call.id, "მოთხოვნა გაიგზავნა!")
+    bot.answer_callback_query(call.id, "Request sent!")
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("adm_act_"))
 def admin_activate(call):
     if call.from_user.id not in ADMIN_IDS:
-        bot.answer_callback_query(call.id, "თქვენ არ ხართ ადმინი!")
+        bot.answer_callback_query(call.id, "Not an Admin!")
         return
     target_id = int(call.data.split("_")[2])
     activate_user_vip(target_id, 30)
     bot.edit_message_text(f"✅ მომხმარებელი {target_id} გააქტიურებულია!", call.message.chat.id, call.message.message_id)
-    bot.send_message(target_id, "🎉 თქვენი VIP სტატუსი გააქტიურდა 30 დღით!")
+    bot.send_message(target_id, "🎉 Your VIP access is activated for 30 days!")
 
 def activate_user_vip(uid, days):
     now = datetime.datetime.now()
@@ -198,7 +200,7 @@ def activate_user_vip(uid, days):
     user_data[uid]['expiry'] = new_expiry
     parent_id = user_data[uid].get('referred_by')
     if parent_id:
-        p_lang = user_lang.get(parent_id, 'ka')
+        p_lang = user_lang.get(parent_id, 'en')
         if parent_id not in ALLOWED_USERS: ALLOWED_USERS.append(parent_id)
         p_expiry = user_data.get(parent_id, {}).get('expiry') or now
         user_data[parent_id]['expiry'] = (p_expiry if p_expiry > now else now) + datetime.timedelta(days=14)
@@ -207,7 +209,7 @@ def activate_user_vip(uid, days):
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("p_"))
 def pick_time(call):
-    lang = user_lang.get(call.from_user.id, 'ka')
+    lang = user_lang.get(call.from_user.id, 'en')
     pair = call.data.split("_")[1]
     markup = types.InlineKeyboardMarkup(row_width=2)
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
@@ -217,7 +219,7 @@ def pick_time(call):
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("s_"))
 def get_signal(call):
-    lang = user_lang.get(call.from_user.id, 'ka')
+    lang = user_lang.get(call.from_user.id, 'en')
     _, pair, t_label = call.data.split("_")
     bot.edit_message_text(STRINGS[lang]['scanning'].format(pair), call.message.chat.id, call.message.message_id, parse_mode="Markdown")
     res, acc = get_live_analysis(pair, t_label) 
