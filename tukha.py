@@ -4,7 +4,6 @@ from tradingview_ta import TA_Handler, Interval
 from flask import Flask
 from threading import Thread
 import os
-import time
 import datetime
 
 app = Flask('')
@@ -202,19 +201,16 @@ def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
+    # აქტივების მიხედვით სწორი ბირჟების და სკრინერების შერჩევა
     options = []
     if "USDT" in pair:
-        options = [{"scr": "crypto", "exch": "BINANCE"}, {"scr": "crypto", "exch": "BYBIT"}]
-    elif pair in ["XAUUSD", "XAGUSD"]:
-        options = [{"scr": "cfd", "exch": "TVC"}, {"scr": "forex", "exch": "OANDA"}]
-    elif pair == "UKOIL":
-        # UKOIL-ისთვის გამოვიყენე OANDA (CFD)
-        options = [{"scr": "cfd", "exch": "OANDA"}, {"scr": "cfd", "exch": "TVC"}]
-    elif pair == "US30":
-        # US30-ისთვის გამოვიყენე FOREXCOM
-        options = [{"scr": "cfd", "exch": "FOREXCOM"}, {"scr": "cfd", "exch": "OANDA"}]
+        options = [{"scr": "crypto", "exch": "BINANCE"}]
+    elif pair in ["XAUUSD", "XAGUSD", "UKOIL", "US30"]:
+        # CFD აქტივებისთვის OANDA და FOREXCOM ყველაზე საიმედოა
+        options = [{"scr": "forex", "exch": "OANDA"}, {"scr": "forex", "exch": "FOREXCOM"}]
     else:
-        options = [{"scr": "forex", "exch": "FX_IDC"}, {"scr": "forex", "exch": "OANDA"}]
+        # ფორექსის წყვილებისთვის
+        options = [{"scr": "forex", "exch": "OANDA"}, {"scr": "forex", "exch": "FOREXCOM"}]
         
     for opt in options:
         try:
