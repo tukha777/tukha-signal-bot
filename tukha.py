@@ -80,7 +80,7 @@ STRINGS = {
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Выберите таймфрейм:",
         'scanning': "🔍 Сканирование: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот бот анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фოрекс არ მუშაობს შაბათ-კვირას!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот бот анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фოреक्स არ მუშაობს შაბათ-კვირას!**",
         'accuracy': "🎯 Точность",
         'pair_label': "💎 Пара",
         'time_label': "⏱ Время",
@@ -200,19 +200,18 @@ def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    options = []
+    configs = []
     if pair in ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD"]:
-        options = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}]
+        configs = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}]
     elif pair in ["XAUUSD", "XAGUSD"]:
-        # გოლდისთვის ვიყენებთ TVC-ს, რომელიც CFD სკრინერზეა
-        options = [{"scr": "cfd", "exch": "TVC", "sym": pair}]
+        # გოლდის და ვერცხლის ფიქსი: ვცდით TVC-ს და მერე OANDA-ს საიმედოობისთვის
+        configs = [{"scr": "cfd", "exch": "TVC", "sym": pair}, {"scr": "forex", "exch": "OANDA", "sym": pair}]
     else:
-        # ფორექსის წყვილებისთვის
-        options = [{"scr": "forex", "exch": "OANDA", "sym": pair}]
+        configs = [{"scr": "forex", "exch": "OANDA", "sym": pair}]
         
-    for opt in options:
+    for conf in configs:
         try:
-            h = TA_Handler(symbol=opt["sym"], screener=opt["scr"], exchange=opt["exch"], interval=interval, timeout=10)
+            h = TA_Handler(symbol=conf["sym"], screener=conf["scr"], exchange=conf["exch"], interval=interval, timeout=10)
             a = h.get_analysis()
             buy, sell, neutral = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
             total = buy + sell + neutral
