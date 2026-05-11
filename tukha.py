@@ -80,7 +80,7 @@ STRINGS = {
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Выберите таймфрейм:",
         'scanning': "🔍 Сканирование: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот бот анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фოреक्स არ მუშაობს შაბათ-კვირას!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот бот анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Форექს არ მუშაობს შაბათ-კვირას!**",
         'accuracy': "🎯 Точность",
         'pair_label': "💎 Пара",
         'time_label': "⏱ Время",
@@ -200,16 +200,15 @@ def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    # აქტივების მიხედვით მოსინჯვის გეგმა
     test_configs = []
     if pair in ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD"]:
         test_configs = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}]
     elif pair in ["XAUUSD", "XAGUSD"]:
-        # გოლდისთვის ვამოწმებთ ყველა შესაძლო კომბინაციას რიგრიგობით
+        # ოქროსა და ვერცხლისთვის FOREXCOM ყველაზე სტაბილურია ფორექს სკრინერზე
         test_configs = [
-            {"scr": "cfd", "exch": "TVC", "sym": pair},
+            {"scr": "forex", "exch": "FOREXCOM", "sym": pair},
             {"scr": "forex", "exch": "OANDA", "sym": pair},
-            {"scr": "cfd", "exch": "SAXO", "sym": pair}
+            {"scr": "cfd", "exch": "TVC", "sym": pair}
         ]
     else:
         test_configs = [{"scr": "forex", "exch": "OANDA", "sym": pair}, {"scr": "forex", "exch": "FOREXCOM", "sym": pair}]
@@ -232,7 +231,7 @@ def get_live_analysis(pair, t_label):
                 accuracy = round(max(buy, sell) / total * 100, 1)
                 return rec, accuracy
         except:
-            continue # თუ ერთი ბირჟა არ მუშაობს, გადადის შემდეგზე
+            continue
             
     return "NEUTRAL", 0
 
