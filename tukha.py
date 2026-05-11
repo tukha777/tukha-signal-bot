@@ -108,7 +108,10 @@ STRINGS = {
 # --- ადმინ ბრძანება ---
 @bot.message_handler(commands=['addvip'])
 def admin_add_vip(message):
-    if message.from_user.id != ADMIN_ID: return
+    print(f"Message received from: {message.from_user.id}") # ეს დაამატე ლოგებში სანახავად
+    if message.from_user.id != ADMIN_ID: 
+        print("Not an admin!")
+        return
     try:
         parts = message.text.split()
         target_id, days = int(parts[1]), int(parts[2])
