@@ -92,13 +92,12 @@ STRINGS = {
     }
 }
 
-# ღილაკების სწორი თანმიმდევრობა: ენა -> ინფო -> სიგნალი -> რეფერალი
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(STRINGS[lang]['lang_btn'])
     markup.add(STRINGS[lang]['info_btn'])
     markup.add(STRINGS[lang]['signal_btn'])
-    markup.add(STRINGS[lang]['ref_btn']) # რეფერალური ღილაკი აქ არის
+    markup.add(STRINGS[lang]['ref_btn'])
     return markup
 
 def get_lang_inline():
@@ -133,7 +132,7 @@ def show_referral(message):
     bot_username = bot.get_me().username
     bot.send_message(user_id, STRINGS[lang]['ref_msg'].format(bot_username, user_id), parse_mode="Markdown")
 
-@bot.message_handler(func=lambda m: m.text in ["🌐 ენის შეცვლა", "🌐 Change Language", "🌐 Сменить язык", "🌐 Сменить язык"])
+@bot.message_handler(func=lambda m: m.text in ["🌐 ენის შეცვლა", "🌐 Change Language", "🌐 Сменить язык"])
 def show_lang_selection(message):
     bot.send_message(message.chat.id, "Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
 
@@ -187,6 +186,11 @@ def get_signal(call):
     _, pair, t_label = call.data.split("_")
     bot.edit_message_text(STRINGS[lang]['scanning'].format(pair), call.message.chat.id, call.message.message_id, parse_mode="Markdown")
     res, acc = get_live_analysis(pair, t_label) 
+    
+    if acc == 0:
+        bot.edit_message_text("⚠️ ბაზარი დაკეტილია ან მონაცემები მიუწვდომელია.", call.message.chat.id, call.message.message_id)
+        return
+
     icon = "🚀 STRONG BUY" if "STRONG BUY" in res else "📈 BUY" if "BUY" in res else "🆘 STRONG SELL" if "STRONG SELL" in res else "📉 SELL" if "SELL" in res else "⚖️ NEUTRAL"
     txt = (f"🚨 **Tukha Signal LIVE** 🚨\n━━━━━━━━━━━━━━━\n"
            f"💎 {STRINGS[lang]['pair_label']}: `{pair}`\n⏱ {STRINGS[lang]['time_label']}: `{t_label}`\n"
@@ -202,11 +206,11 @@ def get_live_analysis(pair, t_label):
     if "USDT" in pair:
         options = [{"scr": "crypto", "exch": "BINANCE"}, {"scr": "crypto", "exch": "BYBIT"}]
     elif pair in ["XAUUSD", "XAGUSD"]:
-        options = [{"scr": "cfd", "exch": "TVC"}, {"scr": "forex", "exch": "OANDA"}, {"scr": "cfd", "exch": "SAXO"}]
+        options = [{"scr": "cfd", "exch": "TVC"}, {"scr": "forex", "exch": "OANDA"}]
     elif pair == "UKOIL":
         options = [{"scr": "cfd", "exch": "ICE"}, {"scr": "cfd", "exch": "TVC"}]
     elif pair == "US30":
-        options = [{"scr": "cfd", "exch": "CURRENCYCOM"}, {"scr": "cfd", "exch": "CAPITALCOM"}, {"scr": "cfd", "exch": "TVC"}]
+        options = [{"scr": "cfd", "exch": "CURRENCYCOM"}, {"scr": "cfd", "exch": "CAPITALCOM"}]
     else:
         options = [{"scr": "forex", "exch": "FX_IDC"}, {"scr": "forex", "exch": "OANDA"}]
         
@@ -214,10 +218,11 @@ def get_live_analysis(pair, t_label):
         try:
             h = TA_Handler(symbol=pair, screener=opt["scr"], exchange=opt["exch"], interval=interval, timeout=10)
             a = h.get_analysis()
-            b, s, n = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
-            total = b + s + n
+            buy, sell, neutral = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
+            total = buy + sell + neutral
             if total > 0:
-                return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), round(max(b, s) / total * 100, 1)
+                accuracy = round(max(buy, sell) / total * 100, 1)
+                return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), accuracy
         except: continue
     return "NEUTRAL", 0
 
@@ -246,19 +251,15 @@ def activate_user_vip(uid, days):
     now = datetime.datetime.now()
     if uid not in ALLOWED_USERS: ALLOWED_USERS.append(uid)
     current_expiry = user_data.get(uid, {}).get('expiry')
-    if current_expiry and current_expiry > now:
-        new_expiry = current_expiry + datetime.timedelta(days=days)
-    else:
-        new_expiry = now + datetime.timedelta(days=days)
+    new_expiry = (current_expiry if current_expiry and current_expiry > now else now) + datetime.timedelta(days=days)
     if uid not in user_data: user_data[uid] = {'referred_by': None}
     user_data[uid]['expiry'] = new_expiry
     parent_id = user_data[uid].get('referred_by')
     if parent_id:
-        p_lang = user_lang.get(parent_id, 'en')
         if parent_id not in ALLOWED_USERS: ALLOWED_USERS.append(parent_id)
         p_expiry = user_data.get(parent_id, {}).get('expiry') or now
         user_data[parent_id]['expiry'] = (p_expiry if p_expiry > now else now) + datetime.timedelta(days=14)
-        try: bot.send_message(parent_id, STRINGS[p_lang]['ref_bonus'])
+        try: bot.send_message(parent_id, "🎁 გილოცავთ! თქვენმა რეფერალმა შეიძინა VIP. დაგერიცხათ +14 დღე!")
         except: pass
 
 if __name__ == "__main__":
