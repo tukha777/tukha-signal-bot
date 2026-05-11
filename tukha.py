@@ -242,5 +242,13 @@ def final_signal(call):
 
 if __name__ == "__main__":
     init_db()
-    keep_alive()
+    # ჯერ ვუშვებთ Flask-ს ცალკე ნაკადად (Thread)
+    keep_alive() 
+    
+    # ცოტა ხანს ვიცდით, რომ Flask-ი დაექოქოს
+    time.sleep(2) 
+    
+    print("Tukha Signal Bot is Active...") # ეს ტექსტი ახლა აუცილებლად გამოჩნდება
+    
+    # ბოლოს ვუშვებთ ბოტის პოლინგს
     bot.infinity_polling(skip_pending=True)
