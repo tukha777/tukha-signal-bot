@@ -161,13 +161,12 @@ def show_pairs(message):
         return
     
     markup = types.InlineKeyboardMarkup(row_width=3)
-    forex_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD"]]
-    crypto_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"]]
-    other_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["US30", "UKOIL", "XAUUSD", "XAGUSD"]]
-    
-    markup.add(*forex_btns)
-    markup.add(*crypto_btns)
-    markup.add(*other_btns)
+    # მხოლოდ შენს მიერ მოთხოვნილი წყვილები
+    btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in [
+        "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
+        "BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD", "XAUUSD", "XAGUSD"
+    ]]
+    markup.add(*btns)
     bot.send_message(message.chat.id, STRINGS[lang]['choose_pair'], reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("p_"))
@@ -202,23 +201,20 @@ def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
+    # აქტივების მიხედვით ოპტიმიზებული ბირჟები
     options = []
-    if "USDT" in pair:
-        options = [{"scr": "crypto", "exch": "BINANCE"}, {"scr": "crypto", "exch": "BYBIT"}]
+    if pair in ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD"]:
+        # კრიპტოსთვის ვამოწმებთ Binance-ს და Coinbase-ს
+        options = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}, {"scr": "crypto", "exch": "COINBASE", "sym": pair}]
     elif pair in ["XAUUSD", "XAGUSD"]:
-        options = [{"scr": "cfd", "exch": "TVC"}, {"scr": "forex", "exch": "OANDA"}]
-    elif pair == "UKOIL":
-        # UKOIL-ისთვის გამოვიყენე OANDA (CFD)
-        options = [{"scr": "cfd", "exch": "OANDA"}, {"scr": "cfd", "exch": "TVC"}]
-    elif pair == "US30":
-        # US30-ისთვის გამოვიყენე FOREXCOM
-        options = [{"scr": "cfd", "exch": "FOREXCOM"}, {"scr": "cfd", "exch": "OANDA"}]
+        options = [{"scr": "cfd", "exch": "TVC", "sym": pair}, {"scr": "forex", "exch": "OANDA", "sym": pair}]
     else:
-        options = [{"scr": "forex", "exch": "FX_IDC"}, {"scr": "forex", "exch": "OANDA"}]
+        # ფორექსის წყვილებისთვის
+        options = [{"scr": "forex", "exch": "OANDA", "sym": pair}, {"scr": "forex", "exch": "FOREXCOM", "sym": pair}]
         
     for opt in options:
         try:
-            h = TA_Handler(symbol=pair, screener=opt["scr"], exchange=opt["exch"], interval=interval, timeout=10)
+            h = TA_Handler(symbol=opt["sym"], screener=opt["scr"], exchange=opt["exch"], interval=interval, timeout=10)
             a = h.get_analysis()
             buy, sell, neutral = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
             total = buy + sell + neutral
