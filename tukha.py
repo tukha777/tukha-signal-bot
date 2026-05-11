@@ -161,7 +161,6 @@ def show_pairs(message):
         return
     
     markup = types.InlineKeyboardMarkup(row_width=3)
-    # მხოლოდ შენს მიერ მოთხოვნილი წყვილები
     btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in [
         "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
         "BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD", "XAUUSD", "XAGUSD"
@@ -201,16 +200,15 @@ def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    # აქტივების მიხედვით ოპტიმიზებული ბირჟები
     options = []
     if pair in ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD"]:
-        # კრიპტოსთვის ვამოწმებთ Binance-ს და Coinbase-ს
-        options = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}, {"scr": "crypto", "exch": "COINBASE", "sym": pair}]
+        options = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}]
     elif pair in ["XAUUSD", "XAGUSD"]:
-        options = [{"scr": "cfd", "exch": "TVC", "sym": pair}, {"scr": "forex", "exch": "OANDA", "sym": pair}]
+        # გოლდისთვის ვიყენებთ TVC-ს, რომელიც CFD სკრინერზეა
+        options = [{"scr": "cfd", "exch": "TVC", "sym": pair}]
     else:
         # ფორექსის წყვილებისთვის
-        options = [{"scr": "forex", "exch": "OANDA", "sym": pair}, {"scr": "forex", "exch": "FOREXCOM", "sym": pair}]
+        options = [{"scr": "forex", "exch": "OANDA", "sym": pair}]
         
     for opt in options:
         try:
