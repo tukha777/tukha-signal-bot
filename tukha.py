@@ -24,7 +24,7 @@ def keep_alive():
 TOKEN = '8701731141:AAGaHtQjc49BY4_Kcu1ADsgywLEamb_Cdpk'
 bot = telebot.TeleBot(TOKEN)
 
-# 🛑 შენი ID (მხოლოდ შენ გაქვს ადმინ ბრძანებების უფლება)
+# 🛑 შენი ID
 ADMIN_ID = 8696404791 
 
 # --- მონაცემთა ბაზა (SQLite) ---
@@ -97,39 +97,93 @@ STRINGS = {
         'ref_text': "🎁 **რეფერალური სისტემა**\n──────────────────\nმოიწვიე მეგობარი და მიიღე **+7 დღე VIP** საჩუქრად!\n\n🔗 შენი ლინკი:\n`https://t.me/{}?start={}`",
         'pair_label': "აქტივი", 'time_label': "ვადა", 'signal_label': "სიგნალი", 'accuracy_label': "სიზუსტე", 'success': "✅ წარმატებები!"
     },
-    'ru': { 'welcome': "✨ **Tukha Signal Bot** ✨\n\nВыберите язык:", 'main_msg': "💎 **Главное меню**", 'lang_btn': "🌐 Язык", 'info_btn': "ℹ️ Инфо", 'start_btn': "🚀 Старт", 'ref_btn': "🎁 Рефералы", 'paywall': "🚫 **Доступ закрыт!**\nЦена: $30 / Месяц. @TukhaTheGreat", 'choose_pair': "📊 Выбор пары:", 'choose_time': "⏳ Таймфрейм: `{}`", 'scanning': "🔍 Анализ...", 'info_text': "🤖 **v3.2**\nЗолотое правило: Доверяйте только сигналам >75%.", 'ref_text': "🎁 Пригласи друга и получи **+7 дней VIP**!\n🔗 `https://t.me/{}?start={}`", 'pair_label': "Актив", 'time_label': "Время", 'signal_label': "Сигнал", 'accuracy_label': "Точность", 'success': "✅ Удачи!" },
-    'es': { 'welcome': "✨ **Bienvenido** ✨", 'main_msg': "💎 **Menú**", 'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Señal", 'ref_btn': "🎁 Invitados", 'paywall': "🚫 **Sin acceso**", 'info_text': "🤖 v3.2. Regla de oro: >75%.", 'ref_text': "🎁 ¡+7 días gratis!", 'scanning': "🔍 Analizando...", 'success': "✅ ¡Suerte!" },
-    'pt': { 'welcome': "✨ **Bem-vindo** ✨", 'main_msg': "💎 **Menu**", 'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Sinal", 'ref_btn': "🎁 Convites", 'paywall': "🚫 **Sem acesso**", 'info_text': "🤖 v3.2. Regra de ouro: >75%.", 'ref_text': "🎁 +7 dias VIP!", 'scanning': "🔍 Analisando...", 'success': "✅ Boa sorte!" },
-    'tr': { 'welcome': "✨ **Hoş Geldiniz** ✨", 'main_msg': "💎 **Menü**", 'lang_btn': "🌐 Dil", 'info_btn': "ℹ️ Bilgi", 'start_btn': "🚀 Sinyal", 'ref_btn': "🎁 Davet", 'paywall': "🚫 **Erişim Yok**", 'info_text': "🤖 v3.2. Altın kural: >75%.", 'ref_text': "🎁 +7 gün VIP!", 'scanning': "🔍 Taranıyor...", 'success': "✅ Başarılar!" },
-    'hi': { 'welcome': "✨ **स्वागत है** ✨", 'main_msg': "💎 **मेनू**", 'lang_btn': "🌐 भाषा", 'info_btn': "ℹ️ जानकारी", 'start_btn': "🚀 संकेत", 'ref_btn': "🎁 मित्रों", 'paywall': "🚫 **पहुंच वर्जित**", 'info_text': "🤖 v3.2. सुनहरा नियम: >75%.", 'ref_text': "🎁 +7 दिन VIP!", 'scanning': "🔍 स्कैनिंग...", 'success': "✅ शुभकामनाएँ!" },
-    'ar': { 'welcome': "✨ **أهلاً بك** ✨", 'main_msg': "💎 **القائمة**", 'lang_btn': "🌐 اللغة", 'info_btn': "ℹ️ معلومات", 'start_btn': "🚀 إشارة", 'ref_btn': "🎁 إحالات", 'paywall': "🚫 **رفض الوصول**", 'info_text': "🤖 v3.2. القاعدة الذهبية: >75%.", 'ref_text': "🎁 +7 أيام مجانية!", 'scanning': "🔍 جاري الفحص...", 'success': "✅ بالتوفيق!" }
+    'ru': {
+        'welcome': "✨ **Добро пожаловать в Tukha Signal Bot** ✨\n\nВыберите ваш язык:",
+        'main_msg': "💎 **Главное меню**\n──────────────────\nВыберите опцию:",
+        'lang_btn': "🌐 Язык", 'info_btn': "ℹ️ Инфо", 'start_btn': "🚀 Старт", 'ref_btn': "🎁 Рефералы",
+        'paywall': "🚫 **Доступ закрыт!**\n──────────────────\nНужна активация VIP.\n💰 **Цена:** $30 / Месяц\n📩 **Контакт:** @TukhaTheGreat",
+        'choose_pair': "📊 **Выбор пары**\nВыберите актив:",
+        'choose_time': "⏳ **Таймфрейм**\nПара: `{}`\nВыберите время:",
+        'scanning': "🔍 **Анализ рынка...**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nБот анализирует Форекс и Крипто в реальном времени.\n💡 **Золотое правило:** Доверяйте сигналам выше 75%.\n⚠️ Форекс не работает на выходных!",
+        'ref_text': "🎁 **Реферальная система**\n──────────────────\nПригласи друга и получи **+7 дней VIP**!\n🔗 Ссылка:\n`https://t.me/{}?start={}`",
+        'pair_label': "Актив", 'time_label': "Время", 'signal_label': "Сигнал", 'accuracy_label': "Точность", 'success': "✅ Удачи!"
+    },
+    'es': {
+        'welcome': "✨ **Bienvenido a Tukha Signal Bot** ✨\n\nSelecciona tu idioma:",
+        'main_msg': "💎 **Menú Principal**\n──────────────────",
+        'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Información", 'start_btn': "🚀 Iniciar Señal", 'ref_btn': "🎁 Invitados",
+        'paywall': "🚫 **Acceso Denegado!**\nPrecio: $30 / Mes\n@TukhaTheGreat",
+        'choose_pair': "📊 **Seleccionar Par**",
+        'choose_time': "⏳ **Tiempo**\nPar: `{}`",
+        'scanning': "🔍 **Analizando...**",
+        'info_text': "🤖 **v3.2**\n💡 Regla de Oro: Precisión > 75%.\n⚠️ ¡Forex cerrado los fines de semana!",
+        'ref_text': "🎁 ¡Invita a un amigo y obtén **+7 días VIP**!\n🔗 `https://t.me/{}?start={}`",
+        'pair_label': "Activo", 'time_label': "Tiempo", 'signal_label': "Señal", 'accuracy_label': "Precisión", 'success': "✅ ¡Buena suerte!"
+    },
+    'pt': {
+        'welcome': "✨ **Bem-vindo ao Tukha Signal Bot** ✨\n\nEscolha o seu idioma:",
+        'main_msg': "💎 **Menu Principal**\n──────────────────",
+        'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Iniciar Sinal", 'ref_btn': "🎁 Convites",
+        'paywall': "🚫 **Acesso Negado!**\nPreço: $30 / Mês\n@TukhaTheGreat",
+        'choose_pair': "📊 **Selecionar Par**",
+        'choose_time': "⏳ **Tempo**\nPar: `{}`",
+        'scanning': "🔍 **Analisando...**",
+        'info_text': "🤖 **v3.2**\n💡 Regra de Ouro: Precisão > 75%.",
+        'ref_text': "🎁 Convide um amigo e ganhe **+7 dias VIP**!\n🔗 `https://t.me/{}?start={}`",
+        'pair_label': "Ativo", 'time_label': "Tempo", 'signal_label': "Sinal", 'accuracy_label': "Precisão", 'success': "✅ Boa sorte!"
+    },
+    'tr': {
+        'welcome': "✨ **Tukha Signal Bot'a Hoş Geldiniz** ✨\n\nDil seçiniz:",
+        'main_msg': "💎 **Ana Menü**\n──────────────────",
+        'lang_btn': "🌐 Dil", 'info_btn': "ℹ️ Bilgi", 'start_btn': "🚀 Sinyal", 'ref_btn': "🎁 Davet",
+        'paywall': "🚫 **Erişim Engellendi!**\nÜcret: $30 / Ay\n@TukhaTheGreat",
+        'choose_pair': "📊 **Parite Seç**",
+        'choose_time': "⏳ **Zaman Dilimi**\nParite: `{}`",
+        'scanning': "🔍 **Taranıyor...**",
+        'info_text': "🤖 **v3.2**\n💡 Altın Kural: Doğruluk > %75.\n⚠️ Forex hafta sonları çalışmaz!",
+        'ref_text': "🎁 Bir arkadaşını davet et ve **+7 gün VIP** kazan!\n🔗 `https://t.me/{}?start={}`",
+        'pair_label': "Varlık", 'time_label': "Zaman", 'signal_label': "Sinyal", 'accuracy_label': "Doğruluk", 'success': "✅ Bol kazançlar!"
+    },
+    'hi': {
+        'welcome': "✨ **Tukha Signal Bot में आपका स्वागत है** ✨\n\nभाषा चुनें:",
+        'main_msg': "💎 **मुख्य मेनू**\n──────────────────",
+        'lang_btn': "🌐 भाषा", 'info_btn': "ℹ️ जानकारी", 'start_btn': "🚀 संकेत शुरू करें", 'ref_btn': "🎁 मित्रों को बुलाएं",
+        'paywall': "🚫 **पहुंच वर्जित!**\nकीमत: $30 / महीना\n@TukhaTheGreat",
+        'choose_pair': "📊 **जोड़ी चुनें**",
+        'choose_time': "⏳ **समय सीमा**\nजोड़ी: `{}`",
+        'scanning': "🔍 **स्कैनिंग...**",
+        'info_text': "🤖 **v3.2**\n💡 सुनहरा नियम: सटीकता > 75%.",
+        'ref_text': "🎁 मित्र को आमंत्रित करें और **+7 दिन VIP** प्राप्त करें!\n🔗 `https://t.me/{}?start={}`",
+        'pair_label': "एसेट", 'time_label': "समय", 'signal_label': "संकेत", 'accuracy_label': "सटीकता", 'success': "✅ शुभकामनाएँ!"
+    },
+    'ar': {
+        'welcome': "✨ **أهلاً بك في Tukha Signal Bot** ✨\n\nاختر اللغة:",
+        'main_msg': "💎 **القائمة الرئيسية**\n──────────────────",
+        'lang_btn': "🌐 اللغة", 'info_btn': "ℹ️ معلومات", 'start_btn': "🚀 ابدأ الإشارة", 'ref_btn': "🎁 الإحالات",
+        'paywall': "🚫 **تم رفض الوصول!**\nالسعر: 30 دولار شهرياً\n@TukhaTheGreat",
+        'choose_pair': "📊 **اختر الزوج**",
+        'choose_time': "⏳ **الإطار الزمني**\nالزوج: `{}`",
+        'scanning': "🔍 **جاري الفحص...**",
+        'info_text': "🤖 **v3.2**\n💡 القاعدة الذهبية: الدقة > 75%.",
+        'ref_text': "🎁 ادعُ صديقاً واحصل على **+7 أيام مجانية**!\n🔗 `https://t.me/{}?start={}`",
+        'pair_label': "الأصل", 'time_label': "الوقت", 'signal_label': "الإشارة", 'accuracy_label': "الدقة", 'success': "✅ بالتوفيق!"
+    }
 }
 
 # --- ადმინ ბრძანება ---
 @bot.message_handler(commands=['addvip'])
 def admin_add_vip(message):
     uid = message.from_user.id
-    print(f"DEBUG: Message from {uid} | Command: {message.text}") # ეს დაგვეხმარება დანახვაში
-    
-    if uid != ADMIN_ID:
-        print(f"DEBUG: Access denied for {uid}")
-        return
-
+    if uid != ADMIN_ID: return
     try:
         parts = message.text.split()
-        if len(parts) < 3:
-            bot.reply_to(message, "❌ გამოიყენე ფორმატი: `/addvip ID დღეები`", parse_mode="Markdown")
-            return
-            
-        target_id = int(parts[1])
-        days = int(parts[2])
+        target_id, days = int(parts[1]), int(parts[2])
         expiry = add_vip_days(target_id, days)
-        
-        bot.reply_to(message, f"✅ მომხმარებელი `{target_id}` გააქტიურდა `{expiry}`-მდე", parse_mode="Markdown")
-        bot.send_message(target_id, f"🎉 **VIP სტატუსი გააქტიურდა!**\nთქვენ გაქვთ წვდომა {days} დღით.")
-    except Exception as e:
-        print(f"DEBUG Error: {e}")
-        bot.reply_to(message, f"❌ მოხდა შეცდომა: {e}")
+        bot.reply_to(message, f"✅ User `{target_id}` is VIP until: `{expiry}`", parse_mode="Markdown")
+        bot.send_message(target_id, f"🎉 **VIP Activated!**\nYou have access for {days} days.")
+    except:
+        bot.reply_to(message, "❌ Format: `/addvip ID DAYS`")
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -142,7 +196,8 @@ def start(message):
             bot.send_message(inviter, "🎁 **Bonus!** Someone joined via your link. You got **+7 Days VIP**!")
     
     markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(*(types.InlineKeyboardButton(f"{k.upper()}", callback_data=f"setlang_{k}") for k in STRINGS.keys()))
+    langs = [types.InlineKeyboardButton(f"{k.upper()}", callback_data=f"setlang_{k}") for k in STRINGS.keys()]
+    markup.add(*langs)
     bot.send_message(message.chat.id, STRINGS['en']['welcome'], reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("setlang_"))
@@ -160,7 +215,7 @@ def get_main_kbd(l):
     m.row(STRINGS[l]['ref_btn'])
     return m
 
-@bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['start_btn'] for l in STRINGS))
+@bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['start_btn'] for l in STRINGS if l in user_lang.values() or True))
 def pair_menu(message):
     uid = message.from_user.id
     l = user_lang.get(uid, 'en')
@@ -216,10 +271,14 @@ def final_signal(call):
     bot.edit_message_text(STRINGS[l]['scanning'], call.message.chat.id, call.message.message_id)
     rec, acc = get_analysis(pair, TIMES[t_label])
     icon = "🚀 STRONG BUY" if "STRONG_BUY" in rec else "📈 BUY" if "BUY" in rec else "🆘 STRONG SELL" if "STRONG_SELL" in rec else "📉 SELL" if "SELL" in rec else "⚖️ NEUTRAL"
-    res = (f"🌟 **TUKHA SIGNAL LIVE** 🌟\n──────────────────\n"
-           f"💎 {STRINGS[l]['pair_label']}: `{pair}`\n⏱ {STRINGS[l]['time_label']}: `{t_label}`\n"
-           f"📊 {STRINGS[l]['signal_label']}: **{icon}**\n🎯 {STRINGS[l]['accuracy_label']}: `{acc}%`\n"
-           f"──────────────────\n{STRINGS[l]['success']}")
+    res = (f"🌟 **TUKHA SIGNAL LIVE** 🌟\n"
+           f"──────────────────\n"
+           f"💎 {STRINGS[l]['pair_label']}: `{pair}`\n"
+           f"⏱ {STRINGS[l]['time_label']}: `{t_label}`\n"
+           f"📊 {STRINGS[l]['signal_label']}: **{icon}**\n"
+           f"🎯 {STRINGS[l]['accuracy_label']}: `{acc}%`\n"
+           f"──────────────────\n"
+           f"{STRINGS[l]['success']}")
     bot.edit_message_text(res, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
 
 if __name__ == "__main__":
@@ -227,4 +286,5 @@ if __name__ == "__main__":
     try: bot.remove_webhook()
     except: pass
     time.sleep(1)
+    print("Tukha Signal ბოტი ჩაირთვა...")
     bot.polling(none_stop=True)
