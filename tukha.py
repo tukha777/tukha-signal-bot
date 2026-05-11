@@ -200,25 +200,40 @@ def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    configs = []
+    # აქტივების მიხედვით მოსინჯვის გეგმა
+    test_configs = []
     if pair in ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD"]:
-        configs = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}]
+        test_configs = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}]
     elif pair in ["XAUUSD", "XAGUSD"]:
-        # გოლდის და ვერცხლის ფიქსი: ვცდით TVC-ს და მერე OANDA-ს საიმედოობისთვის
-        configs = [{"scr": "cfd", "exch": "TVC", "sym": pair}, {"scr": "forex", "exch": "OANDA", "sym": pair}]
+        # გოლდისთვის ვამოწმებთ ყველა შესაძლო კომბინაციას რიგრიგობით
+        test_configs = [
+            {"scr": "cfd", "exch": "TVC", "sym": pair},
+            {"scr": "forex", "exch": "OANDA", "sym": pair},
+            {"scr": "cfd", "exch": "SAXO", "sym": pair}
+        ]
     else:
-        configs = [{"scr": "forex", "exch": "OANDA", "sym": pair}]
+        test_configs = [{"scr": "forex", "exch": "OANDA", "sym": pair}, {"scr": "forex", "exch": "FOREXCOM", "sym": pair}]
         
-    for conf in configs:
+    for conf in test_configs:
         try:
-            h = TA_Handler(symbol=conf["sym"], screener=conf["scr"], exchange=conf["exch"], interval=interval, timeout=10)
+            h = TA_Handler(
+                symbol=conf["sym"],
+                screener=conf["scr"],
+                exchange=conf["exch"],
+                interval=interval,
+                timeout=7
+            )
             a = h.get_analysis()
             buy, sell, neutral = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
             total = buy + sell + neutral
+            
             if total > 0:
+                rec = a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " ")
                 accuracy = round(max(buy, sell) / total * 100, 1)
-                return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), accuracy
-        except: continue
+                return rec, accuracy
+        except:
+            continue # თუ ერთი ბირჟა არ მუშაობს, გადადის შემდეგზე
+            
     return "NEUTRAL", 0
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("req_vip_"))
