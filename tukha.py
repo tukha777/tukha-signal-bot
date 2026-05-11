@@ -108,18 +108,28 @@ STRINGS = {
 # --- ადმინ ბრძანება ---
 @bot.message_handler(commands=['addvip'])
 def admin_add_vip(message):
-    print(f"Message received from: {message.from_user.id}") # ეს დაამატე ლოგებში სანახავად
-    if message.from_user.id != ADMIN_ID: 
-        print("Not an admin!")
+    uid = message.from_user.id
+    print(f"DEBUG: Message from {uid} | Command: {message.text}") # ეს დაგვეხმარება დანახვაში
+    
+    if uid != ADMIN_ID:
+        print(f"DEBUG: Access denied for {uid}")
         return
+
     try:
         parts = message.text.split()
-        target_id, days = int(parts[1]), int(parts[2])
+        if len(parts) < 3:
+            bot.reply_to(message, "❌ გამოიყენე ფორმატი: `/addvip ID დღეები`", parse_mode="Markdown")
+            return
+            
+        target_id = int(parts[1])
+        days = int(parts[2])
         expiry = add_vip_days(target_id, days)
-        bot.reply_to(message, f"✅ User `{target_id}` is VIP until: `{expiry}`", parse_mode="Markdown")
-        bot.send_message(target_id, f"🎉 **VIP Activated!**\nYou have access for {days} days.")
-    except:
-        bot.reply_to(message, "❌ Format: `/addvip ID DAYS`")
+        
+        bot.reply_to(message, f"✅ მომხმარებელი `{target_id}` გააქტიურდა `{expiry}`-მდე", parse_mode="Markdown")
+        bot.send_message(target_id, f"🎉 **VIP სტატუსი გააქტიურდა!**\nთქვენ გაქვთ წვდომა {days} დღით.")
+    except Exception as e:
+        print(f"DEBUG Error: {e}")
+        bot.reply_to(message, f"❌ მოხდა შეცდომა: {e}")
 
 @bot.message_handler(commands=['start'])
 def start(message):
