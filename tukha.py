@@ -48,7 +48,7 @@ STRINGS = {
         'signal_label': "📊 სიგნალი",
         'success': "✅ წარმატებულ ვაჭრობას გისურვებთ!",
         'paywall': "🚫 **წვდომა შეზღუდულია!**\n\nბოტის გამოსაყენებლად საჭიროა VIP აქტივაცია.\n\n💰 **ფასი:** $30 (1 თვე)\n📩 **გასააქტიურებლად:** @TukhaTheGreat",
-        'ref_msg': "🎁 **მოიწვიე მეგობარი და მიიღე VIP!**\n\nშენი ლინკი:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **მოიწვიე მეგობარი და მიიღე VIP!**\n\nთუ შენი მეგობარი შეიძენს VIP-ს, შენ საჩუქრად მიიღებ **14 დღეს**.\n\nშენი ლინკი:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 გილოცავთ! თქვენმა რეფერალმა შეიძინა VIP. დაგერიცხათ +14 დღე!"
     },
     'en': {
@@ -67,7 +67,7 @@ STRINGS = {
         'signal_label': "📊 Signal",
         'success': "✅ Good luck!",
         'paywall': "🚫 **Access Denied!**\n\nActivation is required.\n\n💰 **Price:** $30 (1 Month)\n📩 **Contact:** @TukhaTheGreat",
-        'ref_msg': "🎁 **Invite a friend & Get VIP!**\n\nYour link:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **Invite a friend & Get VIP!**\n\nIf your friend buys VIP, you get **14 days** for free.\n\nYour link:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 Congratulations! Your referral purchased VIP. You received +14 days!"
     },
     'ru': {
@@ -86,14 +86,13 @@ STRINGS = {
         'signal_label': "📊 Сигнал",
         'success': "✅ Удачной торговли!",
         'paywall': "🚫 **Доступ ограничен!**\n\nТребуется VIP активация.\n\n💰 **Цена:** $30 (1 месяц)\n📩 **Контакт:** @TukhaTheGreat",
-        'ref_msg': "🎁 **Пригласи друга и получи VIP!**\n\nТвоя ссылка:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **Пригласи друга и получи VIP!**\n\nЕсли ваш друг купит VIP, вы получите **14 дней** бесплатно.\n\nТвоя ссылка:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 Поздравляем! Ваш реферал купил VIP. Вам начислено +14 дней!"
     }
 }
 
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    # შენი მოთხოვნილი თანმიმდევრობა:
     markup.row(STRINGS[lang]['lang_btn'])
     markup.row(STRINGS[lang]['info_btn'])
     markup.row(STRINGS[lang]['signal_btn'])
@@ -110,19 +109,29 @@ def get_lang_inline():
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.from_user.id
-    if user_id not in user_data:
-        user_data[user_id] = {'expiry': None}
+    args = message.text.split()
     
-    # ყოველთვის ვკითხულობთ ენას, თუ არ აქვს არჩეული
+    if user_id not in user_data:
+        parent_id = None
+        if len(args) > 1:
+            try:
+                parent_id = int(args[1])
+                if parent_id == user_id: parent_id = None
+            except: parent_id = None
+        user_data[user_id] = {'expiry': None, 'referred_by': parent_id}
+        if parent_id:
+            try: bot.send_message(parent_id, "🔔 ახალი რეფერალი შემოვიდა თქვენი ლინკით!")
+            except: pass
+            
     if user_id not in user_lang:
-        bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა / Выберите язык:", reply_markup=get_lang_inline())
+        bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
     else:
         lang = user_lang[user_id]
         bot.send_message(message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['lang_btn'] for l in STRINGS))
 def show_lang_selection(message):
-    bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა / Выберите язык:", reply_markup=get_lang_inline())
+    bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("lang_"))
 def set_lang(call):
@@ -133,7 +142,7 @@ def set_lang(call):
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['info_btn'] for l in STRINGS))
 def info_handler(message):
-    lang = user_lang.get(message.from_user.id, 'ka') # default ka
+    lang = user_lang.get(message.from_user.id, 'ka')
     bot.send_message(message.chat.id, STRINGS[lang]['info_text'], parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['ref_btn'] for l in STRINGS))
@@ -199,8 +208,8 @@ def get_live_analysis(pair, t_label):
     try:
         h = TA_Handler(symbol=pair, screener=scr, exchange=exch, interval=interval, timeout=10)
         a = h.get_analysis()
-        buy, sell, neutral = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
-        total = buy + sell + neutral
+        buy, sell = a.summary.get('BUY', 0), a.summary.get('SELL', 0)
+        total = buy + sell + a.summary.get('NEUTRAL', 0)
         if total > 0:
             accuracy = round(max(buy, sell) / total * 100, 1)
             return a.summary.get('RECOMMENDATION', 'NEUTRAL'), accuracy
