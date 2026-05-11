@@ -4,6 +4,7 @@ from tradingview_ta import TA_Handler, Interval
 from flask import Flask
 from threading import Thread
 import os
+import time
 import datetime
 
 app = Flask('')
@@ -79,7 +80,7 @@ STRINGS = {
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Выберите таймфрейм:",
         'scanning': "🔍 Сканирование: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот бот анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фოреქ არ მუშაობს შაბათ-კვირას!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nЭтот бот анализирует рынок в реальном времени, используя более 20 технических индикаторов.\n\n💡 **Золотое правило:**\nДоверяйте только тем сигналам, точность которых выше **75%**.\n\n⚠️ **Фოрекс არ მუშაობს შაბათ-კვირას!**",
         'accuracy': "🎯 Точность",
         'pair_label': "💎 Пара",
         'time_label': "⏱ Время",
@@ -131,6 +132,10 @@ def show_referral(message):
     bot_username = bot.get_me().username
     bot.send_message(user_id, STRINGS[lang]['ref_msg'].format(bot_username, user_id), parse_mode="Markdown")
 
+@bot.message_handler(func=lambda m: m.text in ["🌐 ენის შეცვლა", "🌐 Change Language", "🌐 Сменить язык"])
+def show_lang_selection(message):
+    bot.send_message(message.chat.id, "Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
+
 @bot.callback_query_handler(func=lambda c: c.data.startswith("lang_"))
 def set_lang(call):
     lang = call.data.split("_")[1]
@@ -156,12 +161,13 @@ def show_pairs(message):
         return
     
     markup = types.InlineKeyboardMarkup(row_width=3)
-    btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in [
-        "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
-        "BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT",
-        "US30", "UKOIL", "XAUUSD", "XAGUSD"
-    ]]
-    markup.add(*btns)
+    forex_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD"]]
+    crypto_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"]]
+    other_btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in ["US30", "UKOIL", "XAUUSD", "XAGUSD"]]
+    
+    markup.add(*forex_btns)
+    markup.add(*crypto_btns)
+    markup.add(*other_btns)
     bot.send_message(message.chat.id, STRINGS[lang]['choose_pair'], reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("p_"))
@@ -172,18 +178,17 @@ def pick_time(call):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     btns = [types.InlineKeyboardButton(t, callback_data=f"s_{pair}_{t}") for t in times.keys()]
     markup.add(*btns)
-    bot.edit_message_text(f"💎 **{pair}**\n{STRINGS[lang]['choose_time']}", call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
+    bot.edit_message_text(f"💎 {STRINGS[lang]['pair_label']}: **{pair}**\n{STRINGS[lang]['choose_time']}", call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("s_"))
 def get_signal(call):
     lang = user_lang.get(call.from_user.id, 'en')
     _, pair, t_label = call.data.split("_")
     bot.edit_message_text(STRINGS[lang]['scanning'].format(pair), call.message.chat.id, call.message.message_id, parse_mode="Markdown")
-    
     res, acc = get_live_analysis(pair, t_label) 
     
     if acc == 0:
-        bot.edit_message_text("⚠️ მონაცემები დროებით მიუწვდომელია. სცადეთ სხვა ვადა.", call.message.chat.id, call.message.message_id)
+        bot.edit_message_text("⚠️ მონაცემები მიუწვდომელია. სცადეთ სხვა ვადა (მაგ: 15 MIN).", call.message.chat.id, call.message.message_id)
         return
 
     icon = "🚀 STRONG BUY" if "STRONG BUY" in res else "📈 BUY" if "BUY" in res else "🆘 STRONG SELL" if "STRONG SELL" in res else "📉 SELL" if "SELL" in res else "⚖️ NEUTRAL"
@@ -194,32 +199,32 @@ def get_signal(call):
     bot.edit_message_text(txt, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
 
 def get_live_analysis(pair, t_label):
-    intervals = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
-    interval = intervals.get(t_label, Interval.INTERVAL_1_MINUTE)
+    times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
+    interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    # მაქსიმალურად გაფართოებული ბირჟების სია სათითაო წყვილისთვის
-    configs = []
+    options = []
     if "USDT" in pair:
-        configs = [{"scr": "crypto", "exch": "BINANCE"}]
-    elif pair == "US30":
-        configs = [{"scr": "cfd", "exch": "FOREXCOM"}, {"scr": "cfd", "exch": "TVC"}]
+        options = [{"scr": "crypto", "exch": "BINANCE"}, {"scr": "crypto", "exch": "BYBIT"}]
+    elif pair in ["XAUUSD", "XAGUSD"]:
+        options = [{"scr": "cfd", "exch": "TVC"}, {"scr": "forex", "exch": "OANDA"}]
     elif pair == "UKOIL":
-        configs = [{"scr": "cfd", "exch": "TVC"}, {"scr": "cfd", "exch": "OANDA"}]
+        # UKOIL-ისთვის გამოვიყენე OANDA (CFD)
+        options = [{"scr": "cfd", "exch": "OANDA"}, {"scr": "cfd", "exch": "TVC"}]
+    elif pair == "US30":
+        # US30-ისთვის გამოვიყენე FOREXCOM
+        options = [{"scr": "cfd", "exch": "FOREXCOM"}, {"scr": "cfd", "exch": "OANDA"}]
     else:
-        configs = [{"scr": "forex", "exch": "OANDA"}, {"scr": "forex", "exch": "FOREXCOM"}, {"scr": "forex", "exch": "FX_IDC"}]
+        options = [{"scr": "forex", "exch": "FX_IDC"}, {"scr": "forex", "exch": "OANDA"}]
         
-    for conf in configs:
+    for opt in options:
         try:
-            h = TA_Handler(symbol=pair, screener=conf["scr"], exchange=conf["exch"], interval=interval, timeout=10)
+            h = TA_Handler(symbol=pair, screener=opt["scr"], exchange=opt["exch"], interval=interval, timeout=10)
             a = h.get_analysis()
-            rec = a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " ")
-            buy = a.summary.get('BUY', 0)
-            sell = a.summary.get('SELL', 0)
-            neutral = a.summary.get('NEUTRAL', 0)
+            buy, sell, neutral = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
             total = buy + sell + neutral
             if total > 0:
                 accuracy = round(max(buy, sell) / total * 100, 1)
-                return rec, accuracy
+                return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), accuracy
         except: continue
     return "NEUTRAL", 0
 
@@ -249,7 +254,7 @@ def activate_user_vip(uid, days):
     if uid not in ALLOWED_USERS: ALLOWED_USERS.append(uid)
     current_expiry = user_data.get(uid, {}).get('expiry')
     new_expiry = (current_expiry if current_expiry and current_expiry > now else now) + datetime.timedelta(days=days)
-    if uid not in user_data: user_data[uid] = {'expiry': None, 'referred_by': None}
+    if uid not in user_data: user_data[uid] = {'referred_by': None}
     user_data[uid]['expiry'] = new_expiry
     parent_id = user_data[uid].get('referred_by')
     if parent_id:
