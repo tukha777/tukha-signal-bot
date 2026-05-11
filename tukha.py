@@ -22,22 +22,18 @@ def keep_alive():
 TOKEN = '8701731141:AAGaHtQjc49BY4_Kcu1ADsgywLEamb_Cdpk'
 bot = telebot.TeleBot(TOKEN)
 
-# ძველი კავშირების გაწყვეტა (Conflict 409-ის თავიდან ასაცილებლად)
+# ძველი კავშირების გაწმენდა
 try:
     bot.remove_webhook()
     time.sleep(1)
 except:
     pass
 
-# მომხმარებლის ენების შესანახი (დროებითი მეხსიერება)
 user_lang = {}
 
 PAIRS = [
-    "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD", "EURGBP", 
-    "EURJPY", "GBPJPY", "EURAUD", "EURCAD", "AUDJPY", "CADJPY", "GBPAUD", "GBPCAD",
-    "BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT", "ADAUSDT", "DOGEUSDT", "DOTUSDT",
-    "AVAXUSDT", "LINKUSDT", "MATICUSDT", "UNIUSDT", "LTCUSDT", "BCHUSDT", "ATOMUSDT", "XMRUSDT",
-    "XAUUSD", "XAGUSD", "EURCHF", "GBPCHF", "AUDCAD", "AUDCHF", "AUDNZD", "CADCHF", "CHFJPY"
+    "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
+    "BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "XAUUSD"
 ]
 
 TIMES = {
@@ -51,30 +47,44 @@ TIMES = {
 STRINGS = {
     'en': {
         'welcome': "Welcome to **Tukha Signal**! Please choose your language:",
-        'main_msg': "Select an option from the menu:",
+        'main_msg': "Main Menu:",
         'lang_btn': "🌐 Language",
         'info_btn': "ℹ️ Information",
         'start_btn': "🚀 Start Signal",
+        'ref_btn': "🎁 Invite Friends",
         'choose_pair': "📊 Choose a pair:",
         'choose_time': "⏳ Pair: **{}**\nChoose timeframe:",
-        'scanning': "🔍 Scanning the market...",
-        'info_text': "🤖 **Tukha Signal Bot v3.0**\n\nReal-time market analysis.\n\n💡 **Tip:** Trust only signals with accuracy > 75%.",
+        'scanning': "🔍 Scanning...",
+        'info_text': (
+            "🤖 **Tukha Signal Bot v3.2**\n\n"
+            "The bot analyzes Forex and major Crypto pairs in real-time.\n\n"
+            "💡 **Golden Rule:**\nTrust only signals with accuracy higher than 75%.\n\n"
+            "⚠️ **Forex does not work on weekends!**"
+        ),
+        'ref_text': "🎁 **Invite Friends & Get Rewards!**\n\nYour referral link:\n`https://t.me/{}?start={}`",
         'pair_label': "💎 Pair",
         'time_label': "⏱ Time",
         'signal_label': "📊 Signal",
         'accuracy_label': "🎯 Accuracy",
-        'success': "✅ Good luck with your trades!"
+        'success': "✅ Good luck!"
     },
     'ka': {
         'welcome': "მოგესალმებით **Tukha Signal**-ში! გთხოვთ, აირჩიოთ ენა:",
-        'main_msg': "აირჩიეთ სასურველი ღილაკი:",
+        'main_msg': "მთავარი მენიუ:",
         'lang_btn': "🌐 ენის შეცვლა",
         'info_btn': "ℹ️ ინფორმაცია",
         'start_btn': "🚀 სიგნალის დაწყება",
+        'ref_btn': "🎁 მეგობრების მოწვევა",
         'choose_pair': "📊 აირჩიეთ წყვილი:",
         'choose_time': "⏳ წყვილი: **{}**\nაირჩიეთ ვადა:",
-        'scanning': "🔍 ბაზრის სკანირება...",
-        'info_text': "🤖 **Tukha Signal Bot v3.0**\n\nბაზრის ანალიზი რეალურ დროში.\n\n💡 **რჩევა:** ენდეთ მხოლოდ იმ სიგნალებს, რომელთა სიზუსტე 75%-ზე მაღალია.",
+        'scanning': "🔍 სკანირება...",
+        'info_text': (
+            "🤖 **Tukha Signal Bot v3.2**\n\n"
+            "ბოტი აანალიზებს ფორექსსა და მთავარ კრიპტო წყვილებს რეალურ დროში.\n\n"
+            "💡 **ოქროს წესი:**\nენდეთ მხოლოდ იმ სიგნალებს, რომელთა სიზუსტე 75%-ზე მაღალია.\n\n"
+            "⚠️ **ფორექსი არ მუშაობს შაბათ-კვირას!**"
+        ),
+        'ref_text': "🎁 **მოიწვიე მეგობარი!**\n\nშენი სარეფერალო ლინკი:\n`https://t.me/{}?start={}`",
         'pair_label': "💎 წყვილი",
         'time_label': "⏱ ვადა",
         'signal_label': "📊 სიგნალი",
@@ -82,28 +92,35 @@ STRINGS = {
         'success': "✅ წარმატებულ ვაჭრობას გისურვებთ!"
     },
     'ru': {
-        'welcome': "Добро пожаловать в **Tukha Signal**! Пожалуйста, выберите язык:",
-        'main_msg': "Выберите опцию из меню:",
+        'welcome': "Добро пожаловать в **Tukha Signal**! Выберите язык:",
+        'main_msg': "Главное меню:",
         'lang_btn': "🌐 Сменить язык",
         'info_btn': "ℹ️ Информация",
         'start_btn': "🚀 Запустить сигнал",
+        'ref_btn': "🎁 Пригласить друзей",
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Пара: **{}**\nВыберите таймфрейм:",
-        'scanning': "🔍 Сканирование рынка...",
-        'info_text': "🤖 **Tukha Signal Bot v3.0**\n\nАнализ рынка в реальном времени.\n\n💡 **Совет:** Доверяйте только сигналам с точностью > 75%.",
+        'scanning': "🔍 Сканирование...",
+        'info_text': (
+            "🤖 **Tukha Signal Bot v3.2**\n\n"
+            "Бот анализирует Форекс и основные Крипто пары в реальном времени.\n\n"
+            "💡 **Золотое правило:**\nДоверяйте только сигналам с точностью выше 75%.\n\n"
+            "⚠️ **Форекс не работает по выходным!**"
+        ),
+        'ref_text': "🎁 **Приглашай друзей!**\n\nТвоя ссылка:\n`https://t.me/{}?start={}`",
         'pair_label': "💎 Пара",
         'time_label': "⏱ Время",
         'signal_label': "📊 Сигнал",
         'accuracy_label': "🎯 Точность",
-        'success': "✅ Желаем удачной торговли!"
+        'success': "✅ Удачной торговли!"
     }
 }
 
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row(STRINGS[lang]['lang_btn'])
-    markup.row(STRINGS[lang]['info_btn'])
+    markup.row(STRINGS[lang]['lang_btn'], STRINGS[lang]['info_btn'])
     markup.row(STRINGS[lang]['start_btn'])
+    markup.row(STRINGS[lang]['ref_btn'])
     return markup
 
 def get_lang_inline():
@@ -117,7 +134,7 @@ def get_lang_inline():
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, STRINGS['en']['welcome'], reply_markup=get_lang_inline())
+    bot.send_message(message.chat.id, STRINGS['en']['welcome'], reply_markup=get_lang_inline(), parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("setlang_"))
 def set_language(call):
@@ -134,6 +151,13 @@ def change_lang(message):
 def info(message):
     lang = user_lang.get(message.from_user.id, 'en')
     bot.send_message(message.chat.id, STRINGS[lang]['info_text'], parse_mode="Markdown")
+
+@bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['ref_btn'] for l in STRINGS))
+def referral(message):
+    user_id = message.from_user.id
+    lang = user_lang.get(user_id, 'en')
+    bot_username = bot.get_me().username
+    bot.send_message(user_id, STRINGS[lang]['ref_text'].format(bot_username, user_id), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['start_btn'] for l in STRINGS))
 def show_pairs(message):
@@ -174,18 +198,13 @@ def callback_signal(call):
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=STRINGS[lang]['scanning'])
     
     recommendation, accuracy = get_live_analysis(pair, TIMES[time_label])
-    
     icon = "🚀 STRONG BUY" if "STRONG_BUY" in recommendation else "📈 BUY" if "BUY" in recommendation else "🆘 STRONG SELL" if "STRONG_SELL" in recommendation else "📉 SELL" if "SELL" in recommendation else "⚖️ NEUTRAL"
     
     result_text = (
-        f"🚨 **Tukha Signal LIVE** 🚨\n"
-        f"━━━━━━━━━━━━━━━\n"
-        f"💎 {STRINGS[lang]['pair_label']}: `{pair}`\n"
-        f"⏱ {STRINGS[lang]['time_label']}: `{time_label}`\n"
-        f"📊 {STRINGS[lang]['signal_label']}: **{icon}**\n"
-        f"🎯 {STRINGS[lang]['accuracy_label']}: `{accuracy}%`\n"
-        f"━━━━━━━━━━━━━━━\n"
-        f"{STRINGS[lang]['success']}"
+        f"🚨 **Tukha Signal LIVE** 🚨\n━━━━━━━━━━━━━━━\n"
+        f"💎 {STRINGS[lang]['pair_label']}: `{pair}`\n⏱ {STRINGS[lang]['time_label']}: `{time_label}`\n"
+        f"📊 {STRINGS[lang]['signal_label']}: **{icon}**\n🎯 {STRINGS[lang]['accuracy_label']}: `{accuracy}%`\n"
+        f"━━━━━━━━━━━━━━━\n{STRINGS[lang]['success']}"
     )
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=result_text, parse_mode="Markdown")
 
