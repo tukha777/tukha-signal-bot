@@ -14,11 +14,16 @@ app = Flask('')
 def home(): return "Tukha Signal is Running!"
 
 def run():
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
+    try:
+        port = int(os.environ.get("PORT", 8080))
+        app.run(host='0.0.0.0', port=port, use_reloader=False)
+    except Exception as e:
+        print(f"Flask error: {e}")
 
 def keep_alive():
-    Thread(target=run).start()
+    # Flask-ის გაშვება ცალკე ნაკადად (Thread)
+    t = Thread(target=run, daemon=True)
+    t.start()
 
 # --- ბოტის მონაცემები ---
 TOKEN = '8701731141:AAGaHtQjc49BY4_Kcu1ADsgywLEamb_Cdpk'
@@ -110,7 +115,6 @@ STRINGS = {
         'vip_msg': "🎉 **VIP სტატუსი გააქტიურდა!**\nთქვენ გაქვთ წვდომა {} დღით. ✅ წარმატებულ ვაჭრობას გისურვებთ!",
         'success': "✅ წარმატებულ ვაჭრობას გისურვებთ!"
     }
-    # სხვა ენები (ru, es, pt, tr, hi, ar) იგივე ლოგიკით დაემატება
 }
 
 # --- ადმინ ფუნქცია ---
@@ -120,7 +124,6 @@ def get_admin_viplist():
     cursor.execute("SELECT user_id, expiry_date FROM users")
     rows = cursor.fetchall()
     conn.close()
-    
     now = datetime.now()
     active_vips = []
     for r in rows:
@@ -128,7 +131,6 @@ def get_admin_viplist():
             if datetime.strptime(r[1], '%Y-%m-%d %H:%M:%S') > now:
                 active_vips.append(f"👤 `{r[0]}` | 📅 `{r[1]}`")
         except: continue
-    
     if not active_vips: return "ℹ️ VIP list is empty."
     return "💎 **Active VIP Users:**\n──────────────────\n" + "\n".join(active_vips)
 
@@ -147,7 +149,6 @@ def admin_add_vip(message):
 
 @bot.message_handler(commands=['start'])
 def start_cmd(message):
-    # ყოველთვის ინგლისური პირველ ჩართვაზე
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(
         types.InlineKeyboardButton("🇺🇸 English", callback_data="setlang_en"),
@@ -187,15 +188,12 @@ def handle_text(message):
         if not is_vip(uid):
             bot.send_message(message.chat.id, l_str['paywall'], parse_mode="Markdown")
             return
-        
         markup = types.InlineKeyboardMarkup(row_width=2)
         btns = [types.InlineKeyboardButton(f"💎 {p}", callback_data=f"pair_{p}") for p in PAIRS]
         markup.add(*btns)
-        
         if uid == ADMIN_ID:
             markup.row(types.InlineKeyboardButton("➕ Add VIP (How-to)", callback_data="admin_help"),
                        types.InlineKeyboardButton("📋 VIP List", callback_data="admin_list"))
-        
         bot.send_message(message.chat.id, "📊 **Market Selection**", reply_markup=markup, parse_mode="Markdown")
     
     elif message.text in ["🌐 Language", "🌐 ენა"]:
@@ -222,7 +220,6 @@ def final_signal(call):
     l = get_user_lang(uid)
     pair, t_label = call.data.split("_")[1], call.data.split("_")[2]
     bot.edit_message_text("🔍 **Scanning Market Data...**", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
-    
     try:
         is_crypto = "BTC" in pair
         handler = TA_Handler(symbol=pair, screener="crypto" if is_crypto else "forex", exchange="BINANCE" if is_crypto else "OANDA", interval=TIMES[t_label], timeout=10)
@@ -230,7 +227,6 @@ def final_signal(call):
         rec = analysis.summary['RECOMMENDATION']
         buy, sell, neut = analysis.summary['BUY'], analysis.summary['SELL'], analysis.summary['NEUTRAL']
         acc = round(max(buy, sell) / (buy + sell + neut) * 100, 1)
-        
         icon = "🚀 STRONG BUY" if "STRONG_BUY" in rec else "📈 BUY" if "BUY" in rec else "🆘 STRONG SELL" if "STRONG_SELL" in rec else "📉 SELL" if "SELL" in rec else "⚖️ NEUTRAL"
         res = (f"🌟 **TUKHA SIGNAL LIVE** 🌟\n──────────────────\n"
                f"💎 Asset: `{pair}`\n⏱ Time: `{t_label}`\n"
@@ -242,13 +238,7 @@ def final_signal(call):
 
 if __name__ == "__main__":
     init_db()
-    # ჯერ ვუშვებთ Flask-ს ცალკე ნაკადად (Thread)
     keep_alive() 
-    
-    # ცოტა ხანს ვიცდით, რომ Flask-ი დაექოქოს
     time.sleep(2) 
-    
-    print("Tukha Signal Bot is Active...") # ეს ტექსტი ახლა აუცილებლად გამოჩნდება
-    
-    # ბოლოს ვუშვებთ ბოტის პოლინგს
+    print("Tukha Signal Bot is Active...") 
     bot.infinity_polling(skip_pending=True)
