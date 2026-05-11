@@ -17,19 +17,14 @@ def run():
 def keep_alive():
     Thread(target=run).start()
 
+# --- მონაცემები ---
 TOKEN = '8701731141:AAEGU30fsTusslDUtgvWFmgvnGJW20M1368'
-ADMIN_IDS = [8696404791, 8711448963] 
+ADMIN_IDS = [8696404791, 8711448963]
+ALLOWED_USERS = [8696404791, 8711448963]
+user_data = {}
+user_lang = {}
 
 bot = telebot.TeleBot(TOKEN)
-
-def set_bot_commands():
-    bot.set_my_commands([
-        types.BotCommand("start", "🚀 Restart & Menu")
-    ])
-
-ALLOWED_USERS = [8696404791, 8711448963] 
-user_data = {} 
-user_lang = {}
 
 STRINGS = {
     'ka': {
@@ -41,14 +36,14 @@ STRINGS = {
         'choose_pair': "📊 აირჩიეთ წყვილი:",
         'choose_time': "⏳ აირჩიეთ ვადა:",
         'scanning': "🔍 სკანირება: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nბოტი აანალიზებს ფორექსსა და მთავარ კრიპტო წყვილებს რეალურ დროში.\n\n💡 **ოქროს წესი:**\nენდეთ მხოლოდ იმ სიგნალებს, რომელთა სიზუსტე **75%-ზე მაღალია**.\n\n⚠️ **ფორექსი არ მუშაობს შაბათ-კვირას!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nბოტი აანალიზებს ბირჟებს რეალურ დროში.\n\n💡 **ოქროს წესი:**\nენდეთ მხოლოდ იმ სიგნალებს, რომელთა სიზუსტე **75%-ზე მაღალია**.\n\n⚠️ **ფორექსი არ მუშაობს შაბათ-კვირას!**",
         'accuracy': "🎯 სიზუსტე",
         'pair_label': "💎 წყვილი",
         'time_label': "⏱ ვადა",
         'signal_label': "📊 სიგნალი",
         'success': "✅ წარმატებულ ვაჭრობას გისურვებთ!",
         'paywall': "🚫 **წვდომა შეზღუდულია!**\n\nბოტის გამოსაყენებლად საჭიროა VIP აქტივაცია.\n\n💰 **ფასი:** $30 (1 თვე)\n📩 **გასააქტიურებლად:** @TukhaTheGreat",
-        'ref_msg': "🎁 **მოიწვიე მეგობარი და მიიღე VIP!**\n\nთუ შენი მეგობარი შეიძენს VIP-ს, შენ საჩუქრად მიიღებ **14 დღეს**.\n\nშენი ლინკი:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **მოიწვიე მეგობარი და მიიღე VIP!**\n\nშენი ლინკი:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 გილოცავთ! თქვენმა რეფერალმა შეიძინა VIP. დაგერიცხათ +14 დღე!"
     },
     'en': {
@@ -60,14 +55,14 @@ STRINGS = {
         'choose_pair': "📊 Choose pair:",
         'choose_time': "⏳ Choose timeframe:",
         'scanning': "🔍 Scanning: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nReal-time analysis for Forex, BTC, and ETH.\n\n💡 **Golden Rule:**\nTrust only signals with accuracy > **75%**.\n\n⚠️ **Forex market is closed on weekends!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nReal-time analysis for Forex and Crypto.\n\n💡 **Golden Rule:**\nTrust signals with accuracy > **75%**.\n\n⚠️ **Forex market is closed on weekends!**",
         'accuracy': "🎯 Accuracy",
         'pair_label': "💎 Pair",
         'time_label': "⏱ Time",
         'signal_label': "📊 Signal",
         'success': "✅ Good luck!",
         'paywall': "🚫 **Access Denied!**\n\nActivation is required.\n\n💰 **Price:** $30 (1 Month)\n📩 **Contact:** @TukhaTheGreat",
-        'ref_msg': "🎁 **Invite a friend & Get VIP!**\n\nIf your friend buys VIP, you get **14 days** for free.\n\nYour link:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **Invite a friend & Get VIP!**\n\nYour link:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 Congratulations! Your referral purchased VIP. You received +14 days!"
     },
     'ru': {
@@ -79,14 +74,14 @@ STRINGS = {
         'choose_pair': "📊 Выберите пару:",
         'choose_time': "⏳ Выберите таймфрейм:",
         'scanning': "🔍 Сканирование: **{}**...",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nБот анализирует рынок Форекс и крипто в реальном времени.\n\n💡 **Золотое правило:**\nДоверяйте сигналам с точностью выше **75%**.\n\n⚠️ **Форекс не работает по выходным!**",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nБот анализирует рынок в реальном времени.\n\n💡 **Золотое правило:**\nДоверяйте сигналам с точностью выше **75%**.\n\n⚠️ **Форекс не работает по выходным!**",
         'accuracy': "🎯 Точность",
         'pair_label': "💎 Пара",
         'time_label': "⏱ Время",
         'signal_label': "📊 Сигнал",
         'success': "✅ Удачной торговли!",
         'paywall': "🚫 **Доступ ограничен!**\n\nТребуется VIP активация.\n\n💰 **Цена:** $30 (1 месяц)\n📩 **Контакт:** @TukhaTheGreat",
-        'ref_msg': "🎁 **Пригласи друга и получи VIP!**\n\nЕсли ваш друг купит VIP, вы получите **14 дней** бесплатно.\n\nТвоя ссылка:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **Пригласи друга и получи VIP!**\n\nТвоя ссылка:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 Поздравляем! Ваш реферал купил VIP. Вам начислено +14 дней!"
     }
 }
@@ -110,7 +105,6 @@ def get_lang_inline():
 def start(message):
     user_id = message.from_user.id
     args = message.text.split()
-    
     if user_id not in user_data:
         parent_id = None
         if len(args) > 1:
@@ -119,19 +113,12 @@ def start(message):
                 if parent_id == user_id: parent_id = None
             except: parent_id = None
         user_data[user_id] = {'expiry': None, 'referred_by': parent_id}
-        if parent_id:
-            try: bot.send_message(parent_id, "🔔 ახალი რეფერალი შემოვიდა თქვენი ლინკით!")
-            except: pass
-            
-    if user_id not in user_lang:
-        bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
-    else:
-        lang = user_lang[user_id]
-        bot.send_message(message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
+    lang = user_lang.get(user_id, 'ka')
+    bot.send_message(message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['lang_btn'] for l in STRINGS))
 def show_lang_selection(message):
-    bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
+    bot.send_message(message.chat.id, "Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("lang_"))
 def set_lang(call):
@@ -158,11 +145,9 @@ def show_pairs(message):
     lang = user_lang.get(user_id, 'ka')
     now = datetime.datetime.now()
     expiry = user_data.get(user_id, {}).get('expiry')
-    
-    if user_id not in ALLOWED_USERS and (not expiry or expiry < now):
+    if user_id not in ALLOWED_USERS and (not expiry or (expiry and expiry < now)):
         bot.send_message(message.chat.id, STRINGS[lang]['paywall'], parse_mode="Markdown")
         return
-    
     markup = types.InlineKeyboardMarkup(row_width=3)
     btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in [
         "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
@@ -187,10 +172,10 @@ def get_signal(call):
     _, pair, t_label = call.data.split("_")
     bot.edit_message_text(STRINGS[lang]['scanning'].format(pair), call.message.chat.id, call.message.message_id, parse_mode="Markdown")
     
-    res, acc = get_live_analysis(pair, t_label) 
+    res, acc = get_live_analysis(pair, t_label)
     
     if acc == 0:
-        bot.edit_message_text("⚠️ Error: No data.", call.message.chat.id, call.message.message_id)
+        bot.edit_message_text("⚠️ Error: No data. (Market may be closed)", call.message.chat.id, call.message.message_id)
         return
 
     icon = "🚀 STRONG BUY" if "STRONG" in res and "BUY" in res else "📈 BUY" if "BUY" in res else "🆘 STRONG SELL" if "STRONG" in res and "SELL" in res else "📉 SELL" if "SELL" in res else "⚖️ NEUTRAL"
@@ -201,15 +186,28 @@ def get_signal(call):
     bot.edit_message_text(txt, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
 
 def get_live_analysis(pair, t_label):
-    intervals = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
+    intervals = {
+        "1 MIN": Interval.INTERVAL_1_MINUTE, 
+        "5 MIN": Interval.INTERVAL_5_MINUTES, 
+        "15 MIN": Interval.INTERVAL_15_MINUTES, 
+        "30 MIN": Interval.INTERVAL_30_MINUTES
+    }
     interval = intervals.get(t_label, Interval.INTERVAL_1_MINUTE)
-    scr = "crypto" if "USDT" in pair else "forex"
-    exch = "BINANCE" if scr == "crypto" else "OANDA"
+    
+    # კოდის ფიქსი: Screener და Exchange სწორად შერჩევა
+    if "USDT" in pair:
+        scr = "crypto"
+        exch = "BINANCE"
+    else:
+        scr = "forex"
+        exch = "FX_IDC" # უფრო სტაბილური ფორექს წყარო
+
     try:
         h = TA_Handler(symbol=pair, screener=scr, exchange=exch, interval=interval, timeout=10)
         a = h.get_analysis()
         buy, sell = a.summary.get('BUY', 0), a.summary.get('SELL', 0)
-        total = buy + sell + a.summary.get('NEUTRAL', 0)
+        neutral = a.summary.get('NEUTRAL', 0)
+        total = buy + sell + neutral
         if total > 0:
             accuracy = round(max(buy, sell) / total * 100, 1)
             return a.summary.get('RECOMMENDATION', 'NEUTRAL'), accuracy
@@ -218,6 +216,5 @@ def get_live_analysis(pair, t_label):
     return "NEUTRAL", 0
 
 if __name__ == "__main__":
-    set_bot_commands()
     keep_alive()
     bot.polling(none_stop=True)
