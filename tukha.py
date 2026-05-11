@@ -188,7 +188,7 @@ def get_signal(call):
     res, acc = get_live_analysis(pair, t_label) 
     
     if acc == 0:
-        bot.edit_message_text("⚠️ ბაზარი დაკეტილია ან მონაცემები მიუწვდომელია.", call.message.chat.id, call.message.message_id)
+        bot.edit_message_text("⚠️ მონაცემები მიუწვდომელია. სცადეთ სხვა ვადა (მაგ: 15 MIN).", call.message.chat.id, call.message.message_id)
         return
 
     icon = "🚀 STRONG BUY" if "STRONG BUY" in res else "📈 BUY" if "BUY" in res else "🆘 STRONG SELL" if "STRONG SELL" in res else "📉 SELL" if "SELL" in res else "⚖️ NEUTRAL"
@@ -208,9 +208,11 @@ def get_live_analysis(pair, t_label):
     elif pair in ["XAUUSD", "XAGUSD"]:
         options = [{"scr": "cfd", "exch": "TVC"}, {"scr": "forex", "exch": "OANDA"}]
     elif pair == "UKOIL":
-        options = [{"scr": "cfd", "exch": "ICE"}, {"scr": "cfd", "exch": "TVC"}]
+        # UKOIL-ისთვის გამოვიყენე OANDA (CFD)
+        options = [{"scr": "cfd", "exch": "OANDA"}, {"scr": "cfd", "exch": "TVC"}]
     elif pair == "US30":
-        options = [{"scr": "cfd", "exch": "CURRENCYCOM"}, {"scr": "cfd", "exch": "CAPITALCOM"}]
+        # US30-ისთვის გამოვიყენე FOREXCOM
+        options = [{"scr": "cfd", "exch": "FOREXCOM"}, {"scr": "cfd", "exch": "OANDA"}]
     else:
         options = [{"scr": "forex", "exch": "FX_IDC"}, {"scr": "forex", "exch": "OANDA"}]
         
