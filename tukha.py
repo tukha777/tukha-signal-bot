@@ -119,6 +119,13 @@ def set_lang(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     bot.send_message(call.message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
+# --- აი ეს ფუნქცია იყო გამორჩენილი ---
+@bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['info_btn'] for l in STRINGS))
+def info(message):
+    lang = user_lang.get(message.from_user.id, 'en')
+    bot.send_message(message.chat.id, STRINGS[lang]['info_text'], parse_mode="Markdown")
+# ------------------------------------
+
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['signal_btn'] for l in STRINGS))
 def show_pairs(message):
     user_id = message.from_user.id
@@ -130,7 +137,6 @@ def show_pairs(message):
         return
     
     markup = types.InlineKeyboardMarkup(row_width=3)
-    # მხოლოდ შენს მიერ მოთხოვნილი წყვილები
     btns = [types.InlineKeyboardButton(p, callback_data=f"p_{p}") for p in [
         "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
         "BTCUSDT", "ETHUSDT"
@@ -171,7 +177,6 @@ def get_live_analysis(pair, t_label):
     intervals = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = intervals.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    # ოპტიმიზებული ბირჟები
     scr = "crypto" if "USDT" in pair else "forex"
     exch = "BINANCE" if scr == "crypto" else "OANDA"
         
