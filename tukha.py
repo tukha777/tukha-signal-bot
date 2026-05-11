@@ -203,16 +203,14 @@ def get_live_analysis(pair, t_label):
     if pair in ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD"]:
         test_configs = [{"scr": "crypto", "exch": "BINANCE", "sym": pair + "T"}]
     elif pair in ["XAUUSD", "XAGUSD"]:
+        # გოლდისთვის SAXO-მ უნდა იმუშაოს ყველაზე სტაბილურად
         test_configs = [
+            {"scr": "cfd", "exch": "SAXO", "sym": pair},
             {"scr": "cfd", "exch": "TVC", "sym": pair},
-            {"scr": "forex", "exch": "OANDA", "sym": pair},
-            {"scr": "forex", "exch": "FOREXCOM", "sym": pair}
+            {"scr": "forex", "exch": "OANDA", "sym": pair}
         ]
     else:
-        test_configs = [
-            {"scr": "forex", "exch": "OANDA", "sym": pair},
-            {"scr": "forex", "exch": "FOREXCOM", "sym": pair}
-        ]
+        test_configs = [{"scr": "forex", "exch": "OANDA", "sym": pair}, {"scr": "forex", "exch": "FOREXCOM", "sym": pair}]
         
     for conf in test_configs:
         try:
@@ -221,15 +219,19 @@ def get_live_analysis(pair, t_label):
                 screener=conf["scr"],
                 exchange=conf["exch"],
                 interval=interval,
-                timeout=15 # გავზარდეთ ტაიმაუტი სტაბილურობისთვის
+                timeout=10
             )
             a = h.get_analysis()
             buy, sell, neutral = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
             total = buy + sell + neutral
+            
             if total > 0:
+                rec = a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " ")
                 accuracy = round(max(buy, sell) / total * 100, 1)
-                return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), accuracy
-        except: continue
+                return rec, accuracy
+        except:
+            continue
+            
     return "NEUTRAL", 0
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("req_vip_"))
