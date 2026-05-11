@@ -92,12 +92,13 @@ STRINGS = {
     }
 }
 
+# ღილაკების სწორი თანმიმდევრობა: ენა -> ინფო -> სიგნალი -> რეფერალი
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(STRINGS[lang]['lang_btn'])
     markup.add(STRINGS[lang]['info_btn'])
     markup.add(STRINGS[lang]['signal_btn'])
-    markup.add(STRINGS[lang]['ref_btn'])
+    markup.add(STRINGS[lang]['ref_btn']) # რეფერალური ღილაკი აქ არის
     return markup
 
 def get_lang_inline():
@@ -132,7 +133,7 @@ def show_referral(message):
     bot_username = bot.get_me().username
     bot.send_message(user_id, STRINGS[lang]['ref_msg'].format(bot_username, user_id), parse_mode="Markdown")
 
-@bot.message_handler(func=lambda m: m.text in ["🌐 ენის შეცვლა", "🌐 Change Language", "🌐 Сменить язык"])
+@bot.message_handler(func=lambda m: m.text in ["🌐 ენის შეცვლა", "🌐 Change Language", "🌐 Сменить язык", "🌐 Сменить язык"])
 def show_lang_selection(message):
     bot.send_message(message.chat.id, "Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
 
@@ -197,28 +198,28 @@ def get_live_analysis(pair, t_label):
     times = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = times.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    # აქ არის მთავარი ლოგიკა წყვილების სწორად დასაკავშირებლად
+    options = []
     if "USDT" in pair:
-        scr, exch = "crypto", "BINANCE"
-    elif pair == "US30":
-        scr, exch = "cfd", "CURRENCYCOM" # US30-სთვის ეს ბირჟა ყველაზე სტაბილურია
-    elif pair == "UKOIL":
-        scr, exch = "cfd", "TVC"
+        options = [{"scr": "crypto", "exch": "BINANCE"}, {"scr": "crypto", "exch": "BYBIT"}]
     elif pair in ["XAUUSD", "XAGUSD"]:
-        scr, exch = "cfd", "TVC"
+        options = [{"scr": "cfd", "exch": "TVC"}, {"scr": "forex", "exch": "OANDA"}, {"scr": "cfd", "exch": "SAXO"}]
+    elif pair == "UKOIL":
+        options = [{"scr": "cfd", "exch": "ICE"}, {"scr": "cfd", "exch": "TVC"}]
+    elif pair == "US30":
+        options = [{"scr": "cfd", "exch": "CURRENCYCOM"}, {"scr": "cfd", "exch": "CAPITALCOM"}, {"scr": "cfd", "exch": "TVC"}]
     else:
-        scr, exch = "forex", "FX_IDC"
+        options = [{"scr": "forex", "exch": "FX_IDC"}, {"scr": "forex", "exch": "OANDA"}]
         
-    try:
-        h = TA_Handler(symbol=pair, screener=scr, exchange=exch, interval=interval, timeout=10)
-        a = h.get_analysis()
-        b, s, n = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
-        total = b + s + n
-        if total == 0: return "NEUTRAL", 0
-        return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), round(max(b, s) / total * 100, 1)
-    except Exception as e:
-        print(f"Error for {pair}: {e}")
-        return "NEUTRAL", 0
+    for opt in options:
+        try:
+            h = TA_Handler(symbol=pair, screener=opt["scr"], exchange=opt["exch"], interval=interval, timeout=10)
+            a = h.get_analysis()
+            b, s, n = a.summary.get('BUY', 0), a.summary.get('SELL', 0), a.summary.get('NEUTRAL', 0)
+            total = b + s + n
+            if total > 0:
+                return a.summary.get('RECOMMENDATION', 'NEUTRAL').replace("_", " "), round(max(b, s) / total * 100, 1)
+        except: continue
+    return "NEUTRAL", 0
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("req_vip_"))
 def request_vip(call):
