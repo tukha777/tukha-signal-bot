@@ -56,7 +56,7 @@ STRINGS = {
         'info_btn': "ℹ️ Information",
         'signal_btn': "🚀 Start Signal",
         'lang_btn': "🌐 Change Language",
-        'ref_btn': "🎁 Invite & Get VIP",
+        'ref_btn': "🎁 Invite Friend & Get VIP",
         'choose_pair': "📊 Choose pair:",
         'choose_time': "⏳ Choose timeframe:",
         'scanning': "🔍 Scanning: **{}**...",
@@ -69,20 +69,42 @@ STRINGS = {
         'paywall': "🚫 **Access Denied!**\n\nActivation is required.\n\n💰 **Price:** $30 (1 Month)\n📩 **Contact:** @TukhaTheGreat",
         'ref_msg': "🎁 **Invite a friend & Get VIP!**\n\nYour link:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 Congratulations! Your referral purchased VIP. You received +14 days!"
+    },
+    'ru': {
+        'start': "🚨 **Tukha Signal** Включен!",
+        'info_btn': "ℹ️ Информация",
+        'signal_btn': "🚀 Запустить сигнал",
+        'lang_btn': "🌐 Сменить язык",
+        'ref_btn': "🎁 Пригласить друга и получить VIP",
+        'choose_pair': "📊 Выберите пару:",
+        'choose_time': "⏳ Выберите таймфрейм:",
+        'scanning': "🔍 Сканирование: **{}**...",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nБот анализирует рынок Форекс и крипто в реальном времени.\n\n💡 **Золотое правило:**\nДоверяйте сигналам с точностью выше **75%**.\n\n⚠️ **Форекс не работает по выходным!**",
+        'accuracy': "🎯 Точность",
+        'pair_label': "💎 Пара",
+        'time_label': "⏱ Время",
+        'signal_label': "📊 Сигнал",
+        'success': "✅ Удачной торговли!",
+        'paywall': "🚫 **Доступ ограничен!**\n\nТребуется VIP активация.\n\n💰 **Цена:** $30 (1 месяц)\n📩 **Контакт:** @TukhaTheGreat",
+        'ref_msg': "🎁 **Пригласи друга и получи VIP!**\n\nТвоя ссылка:\n`https://t.me/{}?start={}`",
+        'ref_bonus': "🎁 Поздравляем! Ваш реферал купил VIP. Вам начислено +14 дней!"
     }
 }
 
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row(STRINGS[lang]['signal_btn'])
-    markup.row(STRINGS[lang]['info_btn'], STRINGS[lang]['ref_btn'])
+    # შენი მოთხოვნილი თანმიმდევრობა:
     markup.row(STRINGS[lang]['lang_btn'])
+    markup.row(STRINGS[lang]['info_btn'])
+    markup.row(STRINGS[lang]['signal_btn'])
+    markup.row(STRINGS[lang]['ref_btn'])
     return markup
 
 def get_lang_inline():
     m = types.InlineKeyboardMarkup()
     m.add(types.InlineKeyboardButton("🇬🇪 KA", callback_data="lang_ka"),
-          types.InlineKeyboardButton("🇺🇸 EN", callback_data="lang_en"))
+          types.InlineKeyboardButton("🇺🇸 EN", callback_data="lang_en"),
+          types.InlineKeyboardButton("🇷🇺 RU", callback_data="lang_ru"))
     return m
 
 @bot.message_handler(commands=['start'])
@@ -91,16 +113,16 @@ def start(message):
     if user_id not in user_data:
         user_data[user_id] = {'expiry': None}
     
-    # თუ ენა ჯერ არ აქვს არჩეული, აირჩიოს
+    # ყოველთვის ვკითხულობთ ენას, თუ არ აქვს არჩეული
     if user_id not in user_lang:
-        bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
+        bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა / Выберите язык:", reply_markup=get_lang_inline())
     else:
         lang = user_lang[user_id]
         bot.send_message(message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['lang_btn'] for l in STRINGS))
 def show_lang_selection(message):
-    bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
+    bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა / Выберите язык:", reply_markup=get_lang_inline())
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("lang_"))
 def set_lang(call):
@@ -109,24 +131,22 @@ def set_lang(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     bot.send_message(call.message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
-# --- ინფორმაციის ღილაკის ფიქსი ---
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['info_btn'] for l in STRINGS))
 def info_handler(message):
-    user_id = message.from_user.id
-    lang = user_lang.get(user_id, 'en')
+    lang = user_lang.get(message.from_user.id, 'ka') # default ka
     bot.send_message(message.chat.id, STRINGS[lang]['info_text'], parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['ref_btn'] for l in STRINGS))
 def show_referral(message):
     user_id = message.from_user.id
-    lang = user_lang.get(user_id, 'en')
+    lang = user_lang.get(user_id, 'ka')
     bot_username = bot.get_me().username
     bot.send_message(user_id, STRINGS[lang]['ref_msg'].format(bot_username, user_id), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['signal_btn'] for l in STRINGS))
 def show_pairs(message):
     user_id = message.from_user.id
-    lang = user_lang.get(user_id, 'en')
+    lang = user_lang.get(user_id, 'ka')
     now = datetime.datetime.now()
     expiry = user_data.get(user_id, {}).get('expiry')
     
@@ -144,7 +164,7 @@ def show_pairs(message):
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("p_"))
 def pick_time(call):
-    lang = user_lang.get(call.from_user.id, 'en')
+    lang = user_lang.get(call.from_user.id, 'ka')
     pair = call.data.split("_")[1]
     markup = types.InlineKeyboardMarkup(row_width=2)
     times = ["1 MIN", "5 MIN", "15 MIN", "30 MIN"]
@@ -154,14 +174,14 @@ def pick_time(call):
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("s_"))
 def get_signal(call):
-    lang = user_lang.get(call.from_user.id, 'en')
+    lang = user_lang.get(call.from_user.id, 'ka')
     _, pair, t_label = call.data.split("_")
     bot.edit_message_text(STRINGS[lang]['scanning'].format(pair), call.message.chat.id, call.message.message_id, parse_mode="Markdown")
     
     res, acc = get_live_analysis(pair, t_label) 
     
     if acc == 0:
-        bot.edit_message_text("⚠️ Error: No data. Try 15 MIN.", call.message.chat.id, call.message.message_id)
+        bot.edit_message_text("⚠️ Error: No data.", call.message.chat.id, call.message.message_id)
         return
 
     icon = "🚀 STRONG BUY" if "STRONG" in res and "BUY" in res else "📈 BUY" if "BUY" in res else "🆘 STRONG SELL" if "STRONG" in res and "SELL" in res else "📉 SELL" if "SELL" in res else "⚖️ NEUTRAL"
@@ -174,10 +194,8 @@ def get_signal(call):
 def get_live_analysis(pair, t_label):
     intervals = {"1 MIN": Interval.INTERVAL_1_MINUTE, "5 MIN": Interval.INTERVAL_5_MINUTES, "15 MIN": Interval.INTERVAL_15_MINUTES, "30 MIN": Interval.INTERVAL_30_MINUTES}
     interval = intervals.get(t_label, Interval.INTERVAL_1_MINUTE)
-    
     scr = "crypto" if "USDT" in pair else "forex"
     exch = "BINANCE" if scr == "crypto" else "OANDA"
-        
     try:
         h = TA_Handler(symbol=pair, screener=scr, exchange=exch, interval=interval, timeout=10)
         a = h.get_analysis()
