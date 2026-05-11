@@ -99,24 +99,26 @@ STRINGS = {
         'main_msg': "💎 **Main Menu**\n──────────────────",
         'lang_btn': "🌐 Language", 'info_btn': "ℹ️ Information", 'start_btn': "🚀 Start Signal", 'ref_btn': "🎁 Invite Friends",
         'paywall': "🚫 **Access Denied!**\nActivation required.\n📩 @TukhaTheGreat",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\nReal-time market analysis.\n💡 Trust signals over 75%.",
-        'ref_text': "🎁 **Referral**\nInvite friends and get +7 Days VIP!\n🔗 `https://t.me/{}?start={}`",
-        'vip_msg': "🎉 **VIP Activated!** for {} days.", 'success': "✅ Good luck!"
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nThe bot analyzes Forex and major Crypto pairs in real-time.\n\n💡 **Golden Rule:**\nTrust only signals with accuracy higher than 75%.",
+        'ref_text': "🎁 **Referral System**\n──────────────────\nInvite a friend and get **+7 Days VIP**!\n🔗 `https://t.me/{}?start={}`",
+        'vip_msg': "🎉 **VIP Status Activated!**\nYou have access for {} days. ✅ We wish you a successful trade!",
+        'asset': "Asset", 'time': "Time", 'signal': "Signal", 'accuracy': "Accuracy", 'success': "✅ We wish you a successful trade!"
     },
     'ka': {
         'main_msg': "💎 **მთავარი მენიუ**\n──────────────────",
         'lang_btn': "🌐 ენა", 'info_btn': "ℹ️ ინფორმაცია", 'start_btn': "🚀 სიგნალის დაწყება", 'ref_btn': "🎁 მეგობრები",
-        'paywall': "🚫 **წვდომა შეზღუდულია!**\nსაჭიროა VIP.\n📩 @TukhaTheGreat",
-        'info_text': "🤖 **Tukha Signal Bot v3.2**\nბაზრის რეალური ანალიზი.\n💡 ენდეთ 75%-ზე მაღალ სიგნალს.",
-        'ref_text': "🎁 **რეფერალი**\nმოიწვიე მეგობარი და მიიღე +7 დღე VIP!\n🔗 `https://t.me/{}?start={}`",
-        'vip_msg': "🎉 **VIP გააქტიურდა!** {} დღით.", 'success': "✅ წარმატებები!"
+        'paywall': "🚫 **წვდომა შეზღუდულია!**\nსაჭიროა VIP აქტივაცია.\n📩 @TukhaTheGreat",
+        'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nბოტი აანალიზებს ფორექსსა და მთავარ კრიპტო წყვილებს რეალურ დროში.\n\n💡 **ოქროს წესი:**\nენდეთ მხოლოდ იმ სიგნალებს, რომელთა სიზუსტე 75%-ზე მაღალია.",
+        'ref_text': "🎁 **რეფერალური სისტემა**\n──────────────────\nმოიწვიე მეგობარი და მიიღე **+7 დღე VIP**!\n🔗 `https://t.me/{}?start={}`",
+        'vip_msg': "🎉 **VIP სტატუსი გააქტიურდა!**\nთქვენ გაქვთ წვდომა {} დღით. ✅ წარმატებულ ვაჭრობას გისურვებთ!",
+        'asset': "აქტივი", 'time': "ვადა", 'signal': "სიგნალი", 'accuracy': "სიზუსტე", 'success': "✅ წარმატებულ ვაჭრობას გისურვებთ!"
     },
-    'ru': { 'main_msg': "💎 **Главное меню**", 'lang_btn': "🌐 Язык", 'info_btn': "ℹ️ Инфо", 'start_btn': "🚀 Старт", 'ref_btn': "🎁 Рефералы", 'paywall': "🚫 Нужен VIP", 'info_text': "🤖 Анализ рынка v3.2", 'ref_text': "🎁 Реферал: https://t.me/{}?start={}", 'vip_msg': "🎉 VIP на {} дней.", 'success': "✅ Удачи!" },
-    'es': { 'main_msg': "💎 **Menú**", 'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Señal", 'ref_btn': "🎁 Invitados", 'paywall': "🚫 VIP requerido", 'info_text': "🤖 Análisis v3.2", 'ref_text': "🎁 Enlace: https://t.me/{}?start={}", 'vip_msg': "🎉 VIP por {} días.", 'success': "✅ ¡Éxito!" },
-    'pt': { 'main_msg': "💎 **Menu**", 'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Sinal", 'ref_btn': "🎁 Convites", 'paywall': "🚫 VIP necessário", 'info_text': "🤖 Análise v3.2", 'ref_text': "🎁 Convite: https://t.me/{}?start={}", 'vip_msg': "🎉 VIP por {} dias.", 'success': "✅ Sucesso!" },
-    'tr': { 'main_msg': "💎 **Menü**", 'lang_btn': "🌐 Dil", 'info_btn': "ℹ️ Bilgi", 'start_btn': "🚀 Sinyal", 'ref_btn': "🎁 Davet", 'paywall': "🚫 VIP gerekli", 'info_text': "🤖 Analiz v3.2", 'ref_text': "🎁 Davet: https://t.me/{}?start={}", 'vip_msg': "🎉 VIP {} gün.", 'success': "✅ Başarılar!" },
-    'hi': { 'main_msg': "💎 **मेन्यू**", 'lang_btn': "🌐 भाषा", 'info_btn': "ℹ️ जानकारी", 'start_btn': "🚀 संकेत", 'ref_btn': "🎁 मित्रों", 'paywall': "🚫 VIP आवश्यक", 'info_text': "🤖 विश्लेषण v3.2", 'ref_text': "🎁 लिंक: https://t.me/{}?start={}", 'vip_msg': "🎉 VIP {} दिन।", 'success': "✅ शुभकामनाएँ!" },
-    'ar': { 'main_msg': "💎 **القائمة**", 'lang_btn': "🌐 اللغة", 'info_btn': "ℹ️ معلومات", 'start_btn': "🚀 إشارة", 'ref_btn': "🎁 إحالات", 'paywall': "🚫 مطلوب VIP", 'info_text': "🤖 تحليل v3.2", 'ref_text': "🎁 رابط: https://t.me/{}?start={}", 'vip_msg': "🎉 تم تفعيل VIP لمدة {} أيام.", 'success': "✅ بالتوفيق!" }
+    'ru': { 'main_msg': "💎 **Главное меню**", 'lang_btn': "🌐 Язык", 'info_btn': "ℹ️ Инфо", 'start_btn': "🚀 Старт", 'ref_btn': "🎁 Рефералы", 'paywall': "🚫 Нужен VIP", 'info_text': "🤖 Анализ рынка v3.2\n💡 Доверяйте сигналам выше 75%.", 'ref_text': "🎁 Реферальная система\nПригласи друга и получи +7 дней VIP!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **VIP статус активирован!**\nДоступ на {} дней. ✅ Удачной торговли!", 'asset': "Актив", 'time': "Таймфрейм", 'signal': "Сигнал", 'accuracy': "Точность", 'success': "✅ Удачной торговли!" },
+    'es': { 'main_msg': "💎 **Menú**", 'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Señal", 'ref_btn': "🎁 Invitados", 'paywall': "🚫 VIP requerido", 'info_text': "🤖 Análisis v3.2\n💡 Confíe en señales superiores al 75%.", 'ref_text': "🎁 Sistema de Referencia\n¡Invita a un amigo y obtén +7 días VIP!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **¡VIP activado!**\nAcceso por {} días. ✅ ¡Éxito!", 'asset': "Activo", 'time': "Tiempo", 'signal': "Señal", 'accuracy': "Precisión", 'success': "✅ ¡Éxito!" },
+    'pt': { 'main_msg': "💎 **Menu**", 'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Sinal", 'ref_btn': "🎁 Convites", 'paywall': "🚫 VIP necessário", 'info_text': "🤖 Análise v3.2\n💡 Confie em sinais acima de 75%.", 'ref_text': "🎁 Sistema de Indicação\nConvide um amigo e ganhe +7 dias VIP!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **VIP ativado!**\nAcesso por {} dias. ✅ Sucesso!", 'asset': "Ativo", 'time': "Tempo", 'signal': "Sinal", 'accuracy': "Precisão", 'success': "✅ Sucesso!" },
+    'tr': { 'main_msg': "💎 **Menü**", 'lang_btn': "🌐 Dil", 'info_btn': "ℹ️ Bilgi", 'start_btn': "🚀 Sinyal", 'ref_btn': "🎁 Davet", 'paywall': "🚫 VIP gerekli", 'info_text': "🤖 Analiz v3.2\n💡 %75'in üzerindeki sinyallere güvenin.", 'ref_text': "🎁 Referans Sistemi\nBir arkadaşını davet et ve +7 gün VIP kazan!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **VIP Aktif!**\n{} günlük erişim. ✅ Başarılar!", 'asset': "Varlık", 'time': "Zaman", 'signal': "Sinyal", 'accuracy': "Doğruluk", 'success': "✅ Başarılar!" },
+    'hi': { 'main_msg': "💎 **मेन्यू**", 'lang_btn': "🌐 भाषा", 'info_btn': "ℹ️ जानकारी", 'start_btn': "🚀 संकेत", 'ref_btn': "🎁 मित्रों", 'paywall': "🚫 VIP आवश्यक", 'info_text': "🤖 विश्लेषण v3.2\n💡 75% से अधिक सटीकता वाले संकेतों पर भरोसा करें।", 'ref_text': "🎁 रेफरल सिस्टम\nमित्र को आमंत्रित करें और +7 दिन VIP प्राप्त करें!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **VIP सक्रिय!**\n{} दिनों के लिए पहुंच। ✅ शुभकामनाएँ!", 'asset': "एसेट", 'time': "समय", 'signal': "संकेत", 'accuracy': "सटीकता", 'success': "✅ शुभकामनाएँ!" },
+    'ar': { 'main_msg': "💎 **القائمة**", 'lang_btn': "🌐 اللغة", 'info_btn': "ℹ️ معلومات", 'start_btn': "🚀 إشارة", 'ref_btn': "🎁 إحالات", 'paywall': "🚫 مطلوب VIP", 'info_text': "🤖 تحليل v3.2\n💡 ثق بالإشارات التي تزيد عن 75%.", 'ref_text': "🎁 نظام الإحالة\nادعُ صديقاً واحصل على +7 أيام VIP!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **تم تفعيل VIP!**\nلديك صلاحية لمدة {} يومًا. ✅ بالتوفيق!", 'asset': "الأصل", 'time': "الوقت", 'signal': "الإشارة", 'accuracy': "الدقة", 'success': "✅ بالتوفيق!" }
 }
 
 def get_admin_viplist():
@@ -136,7 +138,7 @@ def admin_add_vip(message):
         parts = message.text.split()
         target_id, days = int(parts[1]), int(parts[2])
         add_vip_days(target_id, days)
-        bot.reply_to(message, f"✅ Activated.")
+        bot.reply_to(message, f"✅ Done.")
         u_lang = get_user_lang(target_id)
         bot.send_message(target_id, STRINGS.get(u_lang, STRINGS['en'])['vip_msg'].format(days), parse_mode="Markdown")
     except: bot.reply_to(message, "❌ `/addvip ID DAYS`")
@@ -176,7 +178,7 @@ def handle_text(message):
     l = get_user_lang(uid)
     txt = message.text
     
-    # ვამოწმებთ რომელი ღილაკი დააჭირა ყველა ენაზე
+    # ღილაკების შემოწმება ყველა ენაზე
     all_starts = [s['start_btn'] for s in STRINGS.values()]
     all_infos = [s['info_btn'] for s in STRINGS.values()]
     all_refs = [s['ref_btn'] for s in STRINGS.values()]
@@ -190,7 +192,7 @@ def handle_text(message):
         markup.add(*[types.InlineKeyboardButton(f"💎 {p}", callback_data=f"pair_{p}") for p in PAIRS])
         if uid == ADMIN_ID:
             markup.row(types.InlineKeyboardButton("📋 VIP List", callback_data="admin_list"), types.InlineKeyboardButton("➕ Add Help", callback_data="admin_help"))
-        bot.send_message(message.chat.id, "📊 Selection:", reply_markup=markup)
+        bot.send_message(message.chat.id, "📊 Market Selection:", reply_markup=markup)
     
     elif txt in all_infos:
         bot.send_message(message.chat.id, STRINGS[l]['info_text'], parse_mode="Markdown")
@@ -211,7 +213,7 @@ def callback_pair(call):
     pair = call.data.split("_")[1]
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(*[types.InlineKeyboardButton(f"⏱ {t}", callback_data=f"time_{pair}_{t}") for t in TIMES.keys()])
-    bot.edit_message_text(f"⏳ {pair}", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    bot.edit_message_text(f"⏳ **Asset: {pair}**", call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("time_"))
 def final_signal(call):
@@ -224,8 +226,19 @@ def final_signal(call):
         rec, buy, sell, neut = analysis.summary['RECOMMENDATION'], analysis.summary['BUY'], analysis.summary['SELL'], analysis.summary['NEUTRAL']
         acc = round(max(buy, sell) / (buy + sell + neut) * 100, 1)
         icon = "🚀 STRONG BUY" if "STRONG_BUY" in rec else "📈 BUY" if "BUY" in rec else "🆘 STRONG SELL" if "STRONG_SELL" in rec else "📉 SELL" if "SELL" in rec else "⚖️ NEUTRAL"
-        bot.edit_message_text(f"🌟 **{pair}** | {t_label}\n📊 {icon}\n🎯 Accuracy: {acc}%\n{STRINGS[l]['success']}", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
-    except: bot.edit_message_text("❌ Error", call.message.chat.id, call.message.message_id)
+        
+        # ზუსტად ის ფორმატი, რაც მთხოვე
+        res = (f"🌟 **TUKHA SIGNAL LIVE** 🌟\n"
+               f"──────────────────\n"
+               f"💎 {STRINGS[l]['asset']}: `{pair}`\n"
+               f"⏱️ {STRINGS[l]['time']}: `{t_label}`\n"
+               f"📊 {STRINGS[l]['signal']}: **{icon}**\n"
+               f"🎯 {STRINGS[l]['accuracy']}: `{acc}%`\n"
+               f"──────────────────\n"
+               f"{STRINGS[l]['success']}")
+               
+        bot.edit_message_text(res, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+    except: bot.edit_message_text("❌ Analysis Error.", call.message.chat.id, call.message.message_id)
 
 if __name__ == "__main__":
     init_db()
