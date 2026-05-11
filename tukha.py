@@ -193,3 +193,5 @@ def callback_signal(call):
 if __name__ == "__main__":
     keep_alive()
     bot.polling(none_stop=True)
+bot.remove_webhook()
+time.sleep(2)
