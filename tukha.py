@@ -74,10 +74,9 @@ STRINGS = {
 
 def get_main_keyboard(lang):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(STRINGS[lang]['lang_btn'])
-    markup.add(STRINGS[lang]['info_btn'])
-    markup.add(STRINGS[lang]['signal_btn'])
-    markup.add(STRINGS[lang]['ref_btn'])
+    markup.row(STRINGS[lang]['signal_btn'])
+    markup.row(STRINGS[lang]['info_btn'], STRINGS[lang]['ref_btn'])
+    markup.row(STRINGS[lang]['lang_btn'])
     return markup
 
 def get_lang_inline():
@@ -89,28 +88,19 @@ def get_lang_inline():
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.from_user.id
-    args = message.text.split()
     if user_id not in user_data:
-        parent_id = None
-        if len(args) > 1:
-            try:
-                parent_id = int(args[1])
-                if parent_id == user_id: parent_id = None
-            except: parent_id = None
-        user_data[user_id] = {'expiry': None, 'referred_by': parent_id}
-    lang = user_lang.get(user_id, 'en')
-    bot.send_message(message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
+        user_data[user_id] = {'expiry': None}
+    
+    # თუ ენა ჯერ არ აქვს არჩეული, აირჩიოს
+    if user_id not in user_lang:
+        bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
+    else:
+        lang = user_lang[user_id]
+        bot.send_message(message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
-@bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['ref_btn'] for l in STRINGS))
-def show_referral(message):
-    user_id = message.from_user.id
-    lang = user_lang.get(user_id, 'en')
-    bot_username = bot.get_me().username
-    bot.send_message(user_id, STRINGS[lang]['ref_msg'].format(bot_username, user_id), parse_mode="Markdown")
-
-@bot.message_handler(func=lambda m: m.text in ["🌐 ენის შეცვლა", "🌐 Change Language"])
+@bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['lang_btn'] for l in STRINGS))
 def show_lang_selection(message):
-    bot.send_message(message.chat.id, "Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
+    bot.send_message(message.chat.id, "🌐 Choose Language / აირჩიეთ ენა:", reply_markup=get_lang_inline())
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("lang_"))
 def set_lang(call):
@@ -119,12 +109,19 @@ def set_lang(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     bot.send_message(call.message.chat.id, STRINGS[lang]['start'], reply_markup=get_main_keyboard(lang), parse_mode="Markdown")
 
-# --- აი ეს ფუნქცია იყო გამორჩენილი ---
+# --- ინფორმაციის ღილაკის ფიქსი ---
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['info_btn'] for l in STRINGS))
-def info(message):
-    lang = user_lang.get(message.from_user.id, 'en')
+def info_handler(message):
+    user_id = message.from_user.id
+    lang = user_lang.get(user_id, 'en')
     bot.send_message(message.chat.id, STRINGS[lang]['info_text'], parse_mode="Markdown")
-# ------------------------------------
+
+@bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['ref_btn'] for l in STRINGS))
+def show_referral(message):
+    user_id = message.from_user.id
+    lang = user_lang.get(user_id, 'en')
+    bot_username = bot.get_me().username
+    bot.send_message(user_id, STRINGS[lang]['ref_msg'].format(bot_username, user_id), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['signal_btn'] for l in STRINGS))
 def show_pairs(message):
@@ -132,6 +129,7 @@ def show_pairs(message):
     lang = user_lang.get(user_id, 'en')
     now = datetime.datetime.now()
     expiry = user_data.get(user_id, {}).get('expiry')
+    
     if user_id not in ALLOWED_USERS and (not expiry or expiry < now):
         bot.send_message(message.chat.id, STRINGS[lang]['paywall'], parse_mode="Markdown")
         return
