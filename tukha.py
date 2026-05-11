@@ -131,7 +131,7 @@ STRINGS = {
         'scanning': "🔍 **Analisando...**",
         'info_text': "🤖 **v3.2**\n💡 Regra de Ouro: Precisão > 75%.",
         'ref_text': "🎁 Convide um amigo e ganhe **+7 dias VIP**!\n🔗 `https://t.me/{}?start={}`",
-        'pair_label': "Ativo", 'time_label': "Tempo", 'signal_label': "Sinal", 'accuracy_label': "Precisão", 'success': "✅ Boa sorte!"
+        'pair_label': "Ativo", 'time_label': "Tempo", 'signal_label': "Sinal", 'accuracy_label': "Precisión", 'success': "✅ Boa sorte!"
     },
     'tr': {
         'welcome': "✨ **Tukha Signal Bot'a Hoş Geldiniz** ✨\n\nDil seçiniz:",
@@ -154,7 +154,7 @@ STRINGS = {
         'choose_time': "⏳ **समय सीमा**\nजोड़ी: `{}`",
         'scanning': "🔍 **स्कैनिंग...**",
         'info_text': "🤖 **v3.2**\n💡 सुनहरा नियम: सटीकता > 75%.",
-        'ref_text': "🎁 मित्र को आमंत्रित करें और **+7 दिन VIP** प्राप्त करें!\n🔗 `https://t.me/{}?start={}`",
+        'ref_text': "🎁 मित्र को आमंत्रित करें और **+7 दिन VIP** प्राप्त करें!\n🔗 `https://त।मे/{}?start={}`",
         'pair_label': "एसेट", 'time_label': "समय", 'signal_label': "संकेत", 'accuracy_label': "सटीकता", 'success': "✅ शुभकामनाएँ!"
     },
     'ar': {
@@ -196,7 +196,17 @@ def start(message):
             bot.send_message(inviter, "🎁 **Bonus!** Someone joined via your link. You got **+7 Days VIP**!")
     
     markup = types.InlineKeyboardMarkup(row_width=2)
-    langs = [types.InlineKeyboardButton(f"{k.upper()}", callback_data=f"setlang_{k}") for k in STRINGS.keys()]
+    # ენების ღილაკები დროშებით
+    langs = [
+        types.InlineKeyboardButton("🇺🇸 EN", callback_data="setlang_en"),
+        types.InlineKeyboardButton("🇬🇪 KA", callback_data="setlang_ka"),
+        types.InlineKeyboardButton("🇷🇺 RU", callback_data="setlang_ru"),
+        types.InlineKeyboardButton("🇪🇸 ES", callback_data="setlang_es"),
+        types.InlineKeyboardButton("🇧🇷 PT", callback_data="setlang_pt"),
+        types.InlineKeyboardButton("🇹🇷 TR", callback_data="setlang_tr"),
+        types.InlineKeyboardButton("🇮🇳 HI", callback_data="setlang_hi"),
+        types.InlineKeyboardButton("🇸🇦 AR", callback_data="setlang_ar")
+    ]
     markup.add(*langs)
     bot.send_message(message.chat.id, STRINGS['en']['welcome'], reply_markup=markup, parse_mode="Markdown")
 
@@ -240,7 +250,18 @@ def ref_msg(message):
 @bot.message_handler(func=lambda m: any(m.text == STRINGS[l]['lang_btn'] for l in STRINGS))
 def lang_menu(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(*(types.InlineKeyboardButton(f"{k.upper()}", callback_data=f"setlang_{k}") for k in STRINGS.keys()))
+    # ენების ღილაკები დროშებით
+    langs = [
+        types.InlineKeyboardButton("🇺🇸 EN", callback_data="setlang_en"),
+        types.InlineKeyboardButton("🇬🇪 KA", callback_data="setlang_ka"),
+        types.InlineKeyboardButton("🇷🇺 RU", callback_data="setlang_ru"),
+        types.InlineKeyboardButton("🇪🇸 ES", callback_data="setlang_es"),
+        types.InlineKeyboardButton("🇧🇷 PT", callback_data="setlang_pt"),
+        types.InlineKeyboardButton("🇹🇷 TR", callback_data="setlang_tr"),
+        types.InlineKeyboardButton("🇮🇳 HI", callback_data="setlang_hi"),
+        types.InlineKeyboardButton("🇸🇦 AR", callback_data="setlang_ar")
+    ]
+    markup.add(*langs)
     bot.send_message(message.chat.id, "🌐 Choose Language:", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("pair_"))
