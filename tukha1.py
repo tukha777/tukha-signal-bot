@@ -5,26 +5,36 @@ from flask import Flask
 from threading import Thread
 import os
 import datetime
+import time
 
+# --- Flask Server (Keep Alive) ---
 app = Flask('')
 @app.route('/')
 def home(): return "Online"
 
 def run():
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5050))
     app.run(host='0.0.0.0', port=port)
 
 def keep_alive():
     Thread(target=run).start()
 
-# --- მონაცემები ---
+# --- ბოტის მონაცემები ---
 TOKEN = '8701731141:AAEGU30fsTusslDUtgvWFmgvnGJW20M1368'
 ADMIN_IDS = [8696404791, 8711448963]
 ALLOWED_USERS = [8696404791, 8711448963]
 user_data = {}
 user_lang = {}
 
+# --- ბოტის ინიციალიზაცია ---
 bot = telebot.TeleBot(TOKEN)
+
+# კრიტიკული ხაზი: აუქმებს ყველა ძველ კავშირს, რომ Conflict 409 არ ამოვარდეს
+try:
+    bot.remove_webhook()
+    time.sleep(1) 
+except:
+    pass
 
 STRINGS = {
     'ka': {
@@ -81,7 +91,7 @@ STRINGS = {
         'signal_label': "📊 Сигнал",
         'success': "✅ Удачной торговли!",
         'paywall': "🚫 **Доступ ограничен!**\n\nТребуется VIP активация.\n\n💰 **Цена:** $30 (1 месяц)\n📩 **Контакт:** @TukhaTheGreat",
-        'ref_msg': "🎁 **Пригласи друга и получи VIP!**\n\nТвоя ссылка:\n`https://t.me/{}?start={}`",
+        'ref_msg': "🎁 **Пригласи друга и получить VIP!**\n\nТвоя ссылка:\n`https://t.me/{}?start={}`",
         'ref_bonus': "🎁 Поздравляем! Ваш реферал купил VIP. Вам начислено +14 дней!"
     }
 }
@@ -194,13 +204,12 @@ def get_live_analysis(pair, t_label):
     }
     interval = intervals.get(t_label, Interval.INTERVAL_1_MINUTE)
     
-    # კოდის ფიქსი: Screener და Exchange სწორად შერჩევა
     if "USDT" in pair:
         scr = "crypto"
         exch = "BINANCE"
     else:
         scr = "forex"
-        exch = "FX_IDC" # უფრო სტაბილური ფორექს წყარო
+        exch = "FX_IDC"
 
     try:
         h = TA_Handler(symbol=pair, screener=scr, exchange=exch, interval=interval, timeout=10)
@@ -217,4 +226,9 @@ def get_live_analysis(pair, t_label):
 
 if __name__ == "__main__":
     keep_alive()
-    bot.polling(none_stop=True)
+    # ბოტის გაშვება შეცდომების ავტომატური მართვით
+    while True:
+        try:
+            bot.polling(none_stop=True, interval=1, timeout=20)
+        except Exception as e:
+            time.sleep(3)
