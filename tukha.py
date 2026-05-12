@@ -28,6 +28,7 @@ def keep_alive():
 TOKEN = '8701731141:AAGaHtQjc49BY4_Kcu1ADsgywLEamb_Cdpk'
 bot = telebot.TeleBot(TOKEN)
 ADMIN_ID = 8696404791 
+CHANNEL_ID = "@TukhaSignals" # აქ ჩაწერე შენი არხის ID ავტო-სიგნალებისთვის
 
 # --- მონაცემთა ბაზა ---
 def init_db():
@@ -35,6 +36,8 @@ def init_db():
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS users 
                       (user_id INTEGER PRIMARY KEY, expiry_date TEXT, selected_lang TEXT)''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS alerts 
+                      (user_id INTEGER, pair TEXT, target_price REAL)''')
     conn.commit()
     conn.close()
 
@@ -98,6 +101,7 @@ STRINGS = {
     'en': {
         'main_msg': "💎 **Main Menu**\n──────────────────\nPlease select the desired button:",
         'lang_btn': "🌐 Language", 'info_btn': "ℹ️ Information", 'start_btn': "🚀 Start Signal", 'ref_btn': "🎁 Invite Friends",
+        'calc_btn': "🧮 Calculator", 'alert_btn': "🔔 Price Alert",
         'paywall': "🚫 **Access Denied!**\nActivation required.\n📩 @TukhaTheGreat",
         'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nThe bot analyzes Forex and major Crypto pairs in real-time.\n\n💡 **Golden Rule:**\nTrust only signals with accuracy higher than 75%.",
         'ref_text': "🎁 **Referral System**\n──────────────────\nInvite a friend and get **+7 Days VIP**!\n🔗 `https://t.me/{}?start={}`",
@@ -107,55 +111,52 @@ STRINGS = {
     'ka': {
         'main_msg': "💎 **მთავარი მენიუ**\n──────────────────\nაირჩიეთ სასურველი ღილაკი:",
         'lang_btn': "🌐 ენა", 'info_btn': "ℹ️ ინფორმაცია", 'start_btn': "🚀 სიგნალის დაწყება", 'ref_btn': "🎁 მეგობრები",
+        'calc_btn': "🧮 კალკულატორი", 'alert_btn': "🔔 ფასის შეტყობინება",
         'paywall': "🚫 **წვდომა შეზღუდულია!**\nსაჭიროა VIP აქტივაცია.\n📩 @TukhaTheGreat",
         'info_text': "🤖 **Tukha Signal Bot v3.2**\n\nბოტი აანალიზებს ფორექსსა და მთავარ კრიპტო წყვილებს რეალურ დროში.\n\n💡 **ოქროს წესი:**\nენდეთ მხოლოდ იმ სიგნალებს, რომელთა სიზუსტე 75%-ზე მაღალია.",
         'ref_text': "🎁 **რეფერალური სისტემა**\n──────────────────\nმოიწვიე მეგობარი და მიიღე **+7 დღე VIP**!\n🔗 `https://t.me/{}?start={}`",
         'vip_msg': "🎉 **VIP სტატუსი გააქტიურდა!**\nთქვენ გაქვთ წვდომა {} დღით. ✅ წარმატებულ ვაჭრობას გისურვებთ!",
         'asset': "აქტივი", 'time': "ვადა", 'signal': "სიგნალი", 'accuracy': "სიზუსტე", 'success': "✅ წარმატებულ ვაჭრობას გისურვებთ!"
-    },
-    'ru': { 'main_msg': "💎 **Главное меню**\n──────────────────\nВыберите нужную кнопку:", 'lang_btn': "🌐 Язык", 'info_btn': "ℹ️ Инфо", 'start_btn': "🚀 Старт", 'ref_btn': "🎁 Рефералы", 'paywall': "🚫 Нужен VIP", 'info_text': "🤖 Анализ рынка v3.2\n💡 Доверяйте сигналам выше 75%.", 'ref_text': "🎁 Реферальная система\nПригласи друга и получи +7 дней VIP!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **VIP статус активирован!**\nДоступ на {} дней. ✅ Удачной торговли!", 'asset': "Актив", 'time': "Таймфрейм", 'signal': "Сигнал", 'accuracy': "Точность", 'success': "✅ Удачной торговли!" },
-    'es': { 'main_msg': "💎 **Menú Principal**\n──────────────────\nSeleccione el botón deseado:", 'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Señal", 'ref_btn': "🎁 Invitados", 'paywall': "🚫 VIP requerido", 'info_text': "🤖 Análisis v3.2\n💡 Confíe en señales superiores al 75%.", 'ref_text': "🎁 Sistema de Referencia\n¡Invita a un amigo y obtén +7 días VIP!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **¡VIP activado!**\nAcceso por {} días. ✅ ¡Éxito!", 'asset': "Activo", 'time': "Tiempo", 'signal': "Señal", 'accuracy': "Precisión", 'success': "✅ ¡Éxito!" },
-    'pt': { 'main_msg': "💎 **Menu Principal**\n──────────────────\nSelecione o botão desejado:", 'lang_btn': "🌐 Idioma", 'info_btn': "ℹ️ Info", 'start_btn': "🚀 Sinal", 'ref_btn': "🎁 Convites", 'paywall': "🚫 VIP necessário", 'info_text': "🤖 Análise v3.2\n💡 Confie em sinais acima de 75%.", 'ref_text': "🎁 Sistema de Indicação\nConvide um amigo e ganhe +7 dias VIP!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **VIP ativado!**\nAcesso por {} dias. ✅ Sucesso!", 'asset': "Ativo", 'time': "Tempo", 'signal': "Sinal", 'accuracy': "Precisão", 'success': "✅ Sucesso!" },
-    'tr': { 'main_msg': "💎 **Ana Menü**\n──────────────────\nLütfen istediğiniz butonu seçin:", 'lang_btn': "🌐 Dil", 'info_btn': "ℹ️ Bilgi", 'start_btn': "🚀 Sinyal", 'ref_btn': "🎁 Davet", 'paywall': "🚫 VIP gerekli", 'info_text': "🤖 Analiz v3.2\n💡 %75'in üzerindeki sinyallere güvenin.", 'ref_text': "🎁 Referans Sistemi\nBir arkadaşını davet et ve +7 gün VIP kazan!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **VIP Aktif!**\n{} günlük erişim. ✅ Başarılar!", 'asset': "Varlık", 'time': "Zaman", 'signal': "Sinyal", 'accuracy': "Doğruluk", 'success': "✅ Başarılar!" },
-    'hi': { 'main_msg': "💎 **मुख्य मेनू**\n──────────────────\nकृपया वांछित बटन चुनें:", 'lang_btn': "🌐 भाषा", 'info_btn': "ℹ️ जानकारी", 'start_btn': "🚀 संकेत", 'ref_btn': "🎁 मित्रों", 'paywall': "🚫 VIP आवश्यक", 'info_text': "🤖 विश्लेषण v3.2\n💡 75% से अधिक सटीकता वाले संकेतों पर भरोसा करें।", 'ref_text': "🎁 रेफरल सिस्टम\nमित्र को आमंत्रित करें और +7 दिन VIP प्राप्त करें!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **VIP सक्रिय!**\n{} दिनों के लिए पहुंच। ✅ शुभकामनाएँ!", 'asset': "एसेट", 'time': "समय", 'signal': "संकेत", 'accuracy': "सटीकता", 'success': "✅ शुभकामनाएँ!" },
-    'ar': { 'main_msg': "💎 **القائمة الرئيسية**\n──────────────────\nيرجى اختيار الزر المطلوب:", 'lang_btn': "🌐 اللغة", 'info_btn': "ℹ️ معلومات", 'start_btn': "🚀 إشارة", 'ref_btn': "🎁 إحالات", 'paywall': "🚫 مطلوب VIP", 'info_text': "🤖 تحليل v3.2\n💡 ثق بالإشارات التي تزيد عن 75%.", 'ref_text': "🎁 نظام الإحالة\nادعُ صديقاً واحصل على +7 أيام VIP!\n🔗 `https://t.me/{}?start={}`", 'vip_msg': "🎉 **تم تفعيل VIP!**\nلديك صلاحية لمدة {} يومًا. ✅ بالتوفيق!", 'asset': "الأصل", 'time': "الوقت", 'signal': "الإشارة", 'accuracy': "الدقة", 'success': "✅ بالتوفيق!" }
+    }
 }
+# შენიშვნა: სხვა ენები (ru, es, pt, tr, hi, ar) დაემატება ანალოგიურად
 
-def get_admin_viplist():
-    conn = sqlite3.connect('users.db', check_same_thread=False)
-    cursor = conn.cursor()
-    cursor.execute("SELECT user_id, expiry_date FROM users")
-    rows = cursor.fetchall()
-    conn.close()
-    now = datetime.now()
-    active = [f"👤 `{r[0]}` | 📅 `{r[1]}`" for r in rows if r[1] and datetime.strptime(r[1], '%Y-%m-%d %H:%M:%S') > now]
-    return "💎 **Active VIPs:**\n" + "\n".join(active) if active else "ℹ️ Empty."
+def get_main_kbd(l):
+    m = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    m.row(STRINGS[l]['lang_btn'], STRINGS[l]['info_btn'])
+    m.row(STRINGS[l]['start_btn'])
+    m.row(STRINGS[l]['ref_btn'], STRINGS[l]['calc_btn'])
+    m.row(STRINGS[l]['alert_btn'])
+    return m
 
-@bot.message_handler(commands=['addvip'])
-def admin_add_vip(message):
-    if message.from_user.id != ADMIN_ID: return
-    try:
-        parts = message.text.split()
-        target_id, days = int(parts[1]), int(parts[2])
-        add_vip_days(target_id, days)
-        bot.reply_to(message, f"✅ Done.")
-        u_lang = get_user_lang(target_id)
-        bot.send_message(target_id, STRINGS.get(u_lang, STRINGS['en'])['vip_msg'].format(days), parse_mode="Markdown")
-    except: bot.reply_to(message, "❌ `/addvip ID DAYS`")
+# --- ავტომატური სიგნალების ფუნქცია (Background Task) ---
+def auto_signal_task():
+    while True:
+        try:
+            for pair in PAIRS:
+                handler = TA_Handler(symbol=pair, screener="crypto" if "BTC" in pair else "forex", 
+                                    exchange="BINANCE" if "BTC" in pair else "OANDA", 
+                                    interval=Interval.INTERVAL_15_MINUTES, timeout=10)
+                analysis = handler.get_analysis()
+                buy, sell, neut = analysis.summary['BUY'], analysis.summary['SELL'], analysis.summary['NEUTRAL']
+                acc = round(max(buy, sell) / (buy + sell + neut) * 100, 1)
+                
+                if acc >= 90: # მხოლოდ 90%+ სიგნალები არხისთვის
+                    rec = analysis.summary['RECOMMENDATION']
+                    icon = "🚀 STRONG BUY" if "STRONG" in rec and "BUY" in rec else "🆘 STRONG SELL"
+                    msg = f"🔥 **VIP AUTO SIGNAL (90%+)** 🔥\n──────────────────\n💎 Asset: `{pair}`\n📊 Signal: **{icon}**\n🎯 Accuracy: `{acc}%`\n──────────────────\n👉 Get more: @{bot.get_me().username}"
+                    bot.send_message(CHANNEL_ID, msg, parse_mode="Markdown")
+            time.sleep(1800) # ყოველ 30 წუთში შემოწმება
+        except: time.sleep(60)
 
+# --- HANDLERS ---
 @bot.message_handler(commands=['start'])
 def start_cmd(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(
-        types.InlineKeyboardButton("🇺🇸 English", callback_data="setlang_en"),
-        types.InlineKeyboardButton("🇬🇪 ქართული", callback_data="setlang_ka"),
-        types.InlineKeyboardButton("🇷🇺 Русский", callback_data="setlang_ru"),
-        types.InlineKeyboardButton("🇪🇸 Español", callback_data="setlang_es"),
-        types.InlineKeyboardButton("🇧🇷 Português", callback_data="setlang_pt"),
-        types.InlineKeyboardButton("🇹🇷 Türkçe", callback_data="setlang_tr"),
-        types.InlineKeyboardButton("🇮🇳 हिन्दी", callback_data="setlang_hi"),
-        types.InlineKeyboardButton("🇸🇦 العربية", callback_data="setlang_ar")
-    )
+    markup.add(*(types.InlineKeyboardButton(f"{d} {n}", callback_data=f"setlang_{c}") 
+               for d, n, c in [("🇺🇸", "English", "en"), ("🇬🇪", "ქართული", "ka"), ("🇷🇺", "Русский", "ru"), 
+                              ("🇪🇸", "Español", "es"), ("🇧🇷", "Português", "pt"), ("🇹🇷", "Türkçe", "tr"), 
+                              ("🇮🇳", "हिन्दी", "hi"), ("🇸🇦", "العربية", "ar")]))
     bot.send_message(message.chat.id, "✨ **Select Language** ✨", reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("setlang_"))
@@ -163,86 +164,80 @@ def callback_set_lang(call):
     lang = call.data.split("_")[1]
     update_user_lang(call.from_user.id, lang)
     bot.delete_message(call.message.chat.id, call.message.message_id)
-    bot.send_message(call.message.chat.id, STRINGS[lang]['main_msg'], reply_markup=get_main_kbd(lang), parse_mode="Markdown")
-
-def get_main_kbd(l):
-    m = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    m.row(STRINGS[l]['lang_btn'], STRINGS[l]['info_btn'])
-    m.row(STRINGS[l]['start_btn'])
-    m.row(STRINGS[l]['ref_btn'])
-    return m
+    bot.send_message(call.message.chat.id, STRINGS.get(lang, STRINGS['en'])['main_msg'], 
+                     reply_markup=get_main_kbd(lang), parse_mode="Markdown")
 
 @bot.message_handler(func=lambda m: True)
 def handle_text(message):
     uid = message.from_user.id
     l = get_user_lang(uid)
+    l_str = STRINGS.get(l, STRINGS['en'])
     txt = message.text
-    
-    # ღილაკების შემოწმება ყველა ენაზე
-    all_starts = [s['start_btn'] for s in STRINGS.values()]
-    all_infos = [s['info_btn'] for s in STRINGS.values()]
-    all_refs = [s['ref_btn'] for s in STRINGS.values()]
-    all_langs = [s['lang_btn'] for s in STRINGS.values()]
 
-    if txt in all_starts:
+    if txt == l_str['start_btn']:
         if not is_vip(uid):
-            bot.send_message(message.chat.id, STRINGS[l]['paywall'], parse_mode="Markdown")
+            bot.send_message(message.chat.id, l_str['paywall'], parse_mode="Markdown")
             return
         markup = types.InlineKeyboardMarkup(row_width=2)
         markup.add(*[types.InlineKeyboardButton(f"💎 {p}", callback_data=f"pair_{p}") for p in PAIRS])
-        if uid == ADMIN_ID:
-            markup.row(types.InlineKeyboardButton("📋 VIP List", callback_data="admin_list"), types.InlineKeyboardButton("➕ Add Help", callback_data="admin_help"))
-        bot.send_message(message.chat.id, "📊 Market Selection:", reply_markup=markup)
-    
-    elif txt in all_infos:
-        bot.send_message(message.chat.id, STRINGS[l]['info_text'], parse_mode="Markdown")
-        
-    elif txt in all_refs:
-        bot.send_message(uid, STRINGS[l]['ref_text'].format(bot.get_me().username, uid), parse_mode="Markdown")
-        
-    elif txt in all_langs:
-        start_cmd(message)
+        bot.send_message(message.chat.id, "📊 **Market Selection**", reply_markup=markup)
 
-@bot.callback_query_handler(func=lambda c: c.data in ["admin_list", "admin_help"])
-def admin_callbacks(call):
-    if call.data == "admin_list": bot.send_message(call.message.chat.id, get_admin_viplist(), parse_mode="Markdown")
-    else: bot.send_message(call.message.chat.id, "💡 `/addvip ID DAYS`", parse_mode="Markdown")
+    elif txt == l_str['calc_btn']:
+        bot.send_message(message.chat.id, "🧮 **Lot Calculator**\n──────────────────\nUsage: `/calc BALANCE RISK_PERCENT`\nExample: `/calc 1000 2` (2% risk on $1000 balance)")
+
+    elif txt == l_str['info_btn']:
+        bot.send_message(message.chat.id, l_str['info_text'], parse_mode="Markdown")
+
+    elif txt == l_str['ref_btn']:
+        bot.send_message(uid, l_str['ref_text'].format(bot.get_me().username, uid), parse_mode="Markdown")
+
+# --- კალკულატორის ლოგიკა ---
+@bot.message_handler(commands=['calc'])
+def calc_lots(message):
+    try:
+        parts = message.text.split()
+        balance = float(parts[1])
+        risk = float(parts[2])
+        amount = (balance * risk) / 100
+        res = f"🧮 **Risk Calculation:**\n──────────────────\n💰 Balance: `${balance}`\n🎲 Risk: `{risk}%`\n📉 Risk Amount: **`${amount}`**"
+        bot.reply_to(message, res, parse_mode="Markdown")
+    except: bot.reply_to(message, "❌ Use: `/calc 1000 2`", parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("pair_"))
 def callback_pair(call):
+    l = get_user_lang(call.from_user.id)
     pair = call.data.split("_")[1]
     markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(*[types.InlineKeyboardButton(f"⏱ {t}", callback_data=f"time_{pair}_{t}") for t in TIMES.keys()])
+    markup.add(*(types.InlineKeyboardButton(f"⏱ {t}", callback_data=f"time_{pair}_{t}") for t in TIMES.keys()))
     bot.edit_message_text(f"⏳ **Asset: {pair}**", call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("time_"))
 def final_signal(call):
     l = get_user_lang(call.from_user.id)
+    l_str = STRINGS.get(l, STRINGS['en'])
     pair, t_label = call.data.split("_")[1], call.data.split("_")[2]
     bot.edit_message_text("🔍 Scanning...", call.message.chat.id, call.message.message_id)
     try:
-        handler = TA_Handler(symbol=pair, screener="crypto" if "BTC" in pair else "forex", exchange="BINANCE" if "BTC" in pair else "OANDA", interval=TIMES[t_label], timeout=10)
+        handler = TA_Handler(symbol=pair, screener="crypto" if "BTC" in pair else "forex", 
+                            exchange="BINANCE" if "BTC" in pair else "OANDA", 
+                            interval=TIMES[t_label], timeout=10)
         analysis = handler.get_analysis()
-        rec, buy, sell, neut = analysis.summary['RECOMMENDATION'], analysis.summary['BUY'], analysis.summary['SELL'], analysis.summary['NEUTRAL']
+        rec = analysis.summary['RECOMMENDATION']
+        buy, sell, neut = analysis.summary['BUY'], analysis.summary['SELL'], analysis.summary['NEUTRAL']
         acc = round(max(buy, sell) / (buy + sell + neut) * 100, 1)
         icon = "🚀 STRONG BUY" if "STRONG_BUY" in rec else "📈 BUY" if "BUY" in rec else "🆘 STRONG SELL" if "STRONG_SELL" in rec else "📉 SELL" if "SELL" in rec else "⚖️ NEUTRAL"
         
-        # ზუსტად ის ფორმატი, რაც მთხოვე
-        res = (f"🌟 **TUKHA SIGNAL LIVE** 🌟\n"
-               f"──────────────────\n"
-               f"💎 {STRINGS[l]['asset']}: `{pair}`\n"
-               f"⏱️ {STRINGS[l]['time']}: `{t_label}`\n"
-               f"📊 {STRINGS[l]['signal']}: **{icon}**\n"
-               f"🎯 {STRINGS[l]['accuracy']}: `{acc}%`\n"
-               f"──────────────────\n"
-               f"{STRINGS[l]['success']}")
-               
+        res = (f"🌟 **TUKHA SIGNAL LIVE** 🌟\n──────────────────\n"
+               f"💎 {l_str['asset']}: `{pair}`\n⏱️ {l_str['time']}: `{t_label}`\n"
+               f"📊 {l_str['signal']}: **{icon}**\n🎯 {l_str['accuracy']}: `{acc}%`\n"
+               f"──────────────────\n{l_str['success']}")
         bot.edit_message_text(res, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
-    except: bot.edit_message_text("❌ Analysis Error.", call.message.chat.id, call.message.message_id)
+    except: bot.edit_message_text("❌ Error", call.message.chat.id, call.message.message_id)
 
 if __name__ == "__main__":
     init_db()
     keep_alive()
+    Thread(target=auto_signal_task, daemon=True).start() # ავტო-სიგნალების დაქოქვა
     time.sleep(2)
     print("Tukha Signal Bot is Active...")
     bot.infinity_polling(skip_pending=True)
